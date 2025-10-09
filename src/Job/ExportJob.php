@@ -12,6 +12,17 @@ class ExportJob extends AbstractJob
         $logger = $services->get('Omeka\Logger');
         $store = $this->getServiceLocator()->get('Omeka\File\Store');
 
+        $config = $services->get('Config');
+        if (empty($config['export_formats'])) {
+            throw new ConfigException('In config file: no export_formats found.'); // @translate
+        }
+
+        if (empty($config['export_formats'][$this->getArg('format_name')])) {
+            $file_extension = "";
+        } else {
+            $file_extension = $config['export_formats'][$this->getArg('format_name')];
+        }
+
         $exporter = $services->get('Export\Exporter');
 
         $logger->info('Job started');
@@ -19,18 +30,18 @@ class ExportJob extends AbstractJob
         $now = date("Y-m-d_H-i-s");
 
         $filename = tempnam(sys_get_temp_dir(), 'omekas_export');
-        $csvTemp = fopen($filename, 'w');
-        $exporter->setFileHandle($csvTemp);
+        $fileTemp = fopen($filename, 'w');
+        $exporter->setFileHandle($fileTemp);
 
-        $exporter->exportQuery($this->getArg('query'));
+        $exporter->exportItemsQuery($this->getArg('query'), $this->getArg('format_name'));
 
-        fclose($csvTemp);
+        fclose($fileTemp);
 
-        $store->put($filename, "CSV_Export/omekas_$now.csv");
+        $store->put($filename, sprintf("CSV_Export/omekas_$now%s", $file_extension));
 
         unlink($filename);
 
-        $logger->info("Saved in files/CSV_Export/omekas_$now.csv");
+        $logger->info(sprintf("Saved in files/CSV_Export/omekas_$now%s", $file_extension));
         $logger->info('Job ended');
     }
 }

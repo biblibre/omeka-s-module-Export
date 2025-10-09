@@ -1,15 +1,15 @@
 <?php
 namespace Export\Service\Form;
 
-use Export\Form\ImportForm;
+use Export\Form\ExportButtonForm;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
-class ImportFormFactory implements FactoryInterface
+class ExportButtonFormFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
-        $form = new ImportForm(null, $options ?? []);
+        $form = new ExportButtonForm(null, $options ?? []);
         $config = $services->get('Config');
         if (empty($config['export_formats'])) {
             throw new ConfigException('In config file: no export_formats found.'); // @translate

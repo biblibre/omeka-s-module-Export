@@ -2,6 +2,8 @@
 
 namespace Export;
 
+use Omeka\Api\Exception\NotFoundException;
+
 class Exporter
 {
     protected $application;
@@ -12,30 +14,24 @@ class Exporter
         $this->application = $application;
     }
 
-    public function downloadOne($query)
+    public function downloadOne($query, $format = 'CSV', $type = 'items')
     {
         $services = $this->application->getServiceManager();
         $api = $services->get('Omeka\ApiManager');
 
-        $item[] = $api->search('items', ['id' => $query])->getContent()[0];
-
-        $this->transformToCSV($item);
-    }
-
-    public function downloadSelected($query)
-    {
-        $services = $this->application->getServiceManager();
-        $api = $services->get('Omeka\ApiManager');
-
-        $itemsId = $query;
-        foreach ($itemsId as $itemId) {
-            $items[] = $api->search('items', ['id' => $itemId])->getContent()[0];
+        $items = [];
+        $itemsQueryResult = $api->search($type, ['id' => $query])->getContent();
+        if (count($itemsQueryResult) < 1) {
+            throw new NotFoundException(sprintf('No item with id %s found', $query));
+        } // @ translate
+        else {
+            $items[] = $itemsQueryResult[0];
         }
 
-        $this->transformToCSV($items);
+        $this->transform($items, $format);
     }
 
-    public function exportItemSet($query)
+    public function exportItemSet($query, $format = 'CSV')
     {
         $services = $this->application->getServiceManager();
         $api = $services->get('Omeka\ApiManager');
@@ -43,17 +39,126 @@ class Exporter
         $itemSetId = $query;
         $items = $api->search('items', ['item_set_id' => $itemSetId])->getContent();
 
-        $this->transformToCSV($items);
+        if (count($items) < 1) {
+            throw new NotFoundException(sprintf('No item set with id %s found', $itemSetId));
+        } // @ translate
+
+        $this->transform($items, $format);
     }
 
-    public function exportQuery($query)
+    public function exportItemsQuery($query, $format = 'CSV')
     {
         $services = $this->application->getServiceManager();
         $api = $services->get('Omeka\ApiManager');
 
         $items = $api->search('items', $query)->getContent();
 
-        $this->transformToCSV($items);
+        $this->transform($items, $format);
+    }
+
+    protected function transform($items, $format = 'CSV')
+    {
+        if ($format == 'CSV') { // @TODO : make this better than strings
+            $this->transformToCSV($items);
+        } elseif ($format == 'JSON') {
+            $this->transformToJSON($items);
+        } elseif ($format == 'TXT') {
+            $this->transformToTXT($items);
+        } else {
+            fwrite($this->getFileHandle(), sprintf('Error: unknown file format : "%s."', $format));
+        }
+    }
+
+    protected function transformToJSON($items)
+    {
+        // the API already returns JSON
+        fwrite($this->getFileHandle(), json_encode($items));
+    }
+
+    protected function transformToTXT($resources)
+    {
+        // string that will be printed out to file
+        $resourcesStr = '';
+
+        $resources = $this->formatData($resources);
+
+        $services = $this->application->getServiceManager();
+        $api = $services->get('Omeka\ApiManager');
+
+        foreach ($resources as $resource) {
+            // if not first resource we're printing, skip a line
+            if ($resourcesStr != '') {
+                $resourcesStr = $resourcesStr . PHP_EOL;
+            }
+
+            // look for resource template, in case property labels are renamed by it
+            $bHasResourceTemplate = false;
+            $resourceTemplate = null;
+
+            if (array_key_exists('o:resource_template', $resource) && !is_null($resource['o:resource_template'])) {
+                $bHasResourceTemplate = true;
+
+                $resourceTemplate = $this->formatData($api->search('resource_templates',
+                                        ['id' => $resource['o:resource_template']['o:id']])
+                                    ->getContent()[0]);
+            }
+
+            // looping through properties to find something like dcterms:title
+            // properties like dcterms:title are an array of all the values of the corresponding property
+            // with each element of the array containing 'property_id' and 'property_label'
+            foreach ($resource as $property_name => $propertyValue) {
+                if (is_array($propertyValue)) {
+                    // keep track of whether or no this is the first value of one property we're printin out
+                    // because in that case we need to print 'PropertyLabel = ' and then we need separators
+                    // ex: 'Date = 01-01-01 ; 01-02-01'
+                    $bIsFirstPropertyOfLabel = true;
+                    $bIsProperty = false;
+
+                    foreach ($propertyValue as $propertyValueElement) {
+                        if (is_array($propertyValueElement) &&
+                            array_key_exists('property_id', $propertyValueElement)
+                            && array_key_exists('property_label', $propertyValueElement)) {
+                            $bIsProperty = true;
+
+                            // we found a property like dcterms:title!
+
+                            if ($bIsFirstPropertyOfLabel) {
+                                // if first value of property, then add the "Title = " text.
+                                // we must first check if the label was renamed or not by the resource template
+                                if ($bHasResourceTemplate) {
+                                    $correspondingResourceTemplateProperty = null;
+                                    foreach ($resourceTemplate['o:resource_template_property'] as $resourceTemplateProperty) {
+                                        if ($resourceTemplateProperty['o:property']['o:id'] == $propertyValueElement['property_id']) {
+                                            if (array_key_exists('o:alternate_label', $resourceTemplateProperty) &&
+                                            $resourceTemplateProperty['o:alternate_label']) {
+                                                $correspondingResourceTemplateProperty = $resourceTemplateProperty;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    if (!is_null($correspondingResourceTemplateProperty)) {
+                                        $resourcesStr = $resourcesStr . $correspondingResourceTemplateProperty['o:alternate_label'] . ' = ';
+                                    } else {
+                                        $resourcesStr = $resourcesStr . $propertyValueElement['property_label'] . ' = ';
+                                    }
+                                } else {
+                                    $resourcesStr = $resourcesStr . $propertyValueElement['property_label'] . ' = ';
+                                }
+                                $resourcesStr = $resourcesStr . $propertyValueElement['@value'];
+                                $bIsFirstPropertyOfLabel = false;
+                            } else {
+                                $resourcesStr = $resourcesStr . " ; " . $propertyValueElement['@value'];
+                            }
+                        }
+                    }
+                    if ($bIsProperty) {
+                        $resourcesStr = $resourcesStr . PHP_EOL;
+                    }
+                }
+            }
+        }
+
+        fwrite($this->getFileHandle(), $resourcesStr);
     }
 
     protected function transformToCSV($items)

@@ -29,6 +29,7 @@ class IndexController extends AbstractActionController
                 $formData = $form->getData();
 
                 $args['query'] = ['item_set_id' => $formData['item_set']];
+                $args['format_name'] = $formData['format_name'];
                 $this->sendJob($args);
 
                 $message = new Message(
@@ -58,26 +59,50 @@ class IndexController extends AbstractActionController
         $postParams = $request->getPost();
         $queryParams = $request->getQuery();
 
-        if ($postParams['resource_ids'] || $queryParams['id']) {
-            $csvTemp = tmpfile();
-            $exporter->setFileHandle($csvTemp);
+        if ($queryParams['id']) {
+            $fileTemp = tmpfile();
+            $exporter->setFileHandle($fileTemp);
 
-            if ($postParams['resource_ids']) {
-                $exporter->downloadSelected($postParams['resource_ids']);
+            $resource_type = '';
+            if (empty($postParams['format_name'])) {
+                $postParams['format_name'] = 'CSV';
+            }
+            if (empty($postParams['controller'])) {
+                $resource_type = 'item_sets';
             } else {
-                $exporter->downloadOne($queryParams['id']);
+                if ($postParams['controller'] == 'Omeka\Controller\Admin\Item') {
+                    $resource_type = 'items';
+                } elseif ($postParams['controller'] == 'Omeka\Controller\Admin\Media') {
+                    $resource_type = 'media';
+                } else { // should be 'Omeka\Controller\Admin\ItemSet'
+                    $resource_type = 'item_sets';
+                }
             }
-            fseek($csvTemp, 0);
+            $exporter->downloadOne($queryParams['id'], $postParams['format_name'], $resource_type);
+
+            fseek($fileTemp, 0);
             $rows = '';
-            while (! feof($csvTemp)) {
-                $rows .= fread($csvTemp, 1024);
+            while (! feof($fileTemp)) {
+                $rows .= fread($fileTemp, 1024);
             }
-            fclose($csvTemp);
+            fclose($fileTemp);
+
+            // get format extension
+            $config = $this->serviceLocator->get('Config');
+            if (empty($config['export_formats'])) {
+                throw new ConfigException('In config file: no export_formats found.'); // @translate
+            }
+
+            if (empty($config['export_formats'][$postParams['format_name']])) {
+                $file_extension = "";
+            } else {
+                $file_extension = $config['export_formats'][$postParams['format_name']];
+            }
 
             $response = $this->getResponse();
             $response->setContent($rows);
-            $response->getHeaders()->addHeaderLine('Content-type', 'text/csv');
-            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export.csv"');
+            $response->getHeaders()->addHeaderLine('Content-type', 'text/' . strtolower($postParams['format_name']));
+            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export' . $file_extension . '"');
 
             return $response;
         } else {

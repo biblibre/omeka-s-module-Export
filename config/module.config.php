@@ -10,6 +10,7 @@ return [
     'form_elements' => [
         'factories' => [
             'Export\Form\ImportForm' => Service\Form\ImportFormFactory::class,
+            'Export\Form\ExportButtonForm' => Service\Form\ExportButtonFormFactory::class,
         ],
     ],
     'controllers' => [
@@ -18,6 +19,7 @@ return [
         ],
         'factories' => [
             'Export\Controller\Index' => Service\Controller\IndexControllerFactory::class,
+            'Export\Controller\Site\Index' => Service\Controller\Site\IndexControllerFactory::class,
         ],
     ],
     'router' => [
@@ -57,6 +59,21 @@ return [
                                         'action' => 'list',
                                     ],
                                 ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'site' => [
+                'child_routes' => [
+                    'export' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route' => '/export',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Export\Controller\Site',
+                                'controller' => 'Index',
+                                'action' => 'download',
                             ],
                         ],
                     ],
@@ -108,5 +125,10 @@ return [
         'factories' => [
             'Export\Exporter' => Service\ExporterFactory::class,
         ],
+    ],
+    'export_formats' => [
+        'CSV' => '.csv',
+        'JSON' => '.json',
+        'TXT' => '.txt',
     ],
 ];
