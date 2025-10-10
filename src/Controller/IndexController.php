@@ -137,7 +137,7 @@ class IndexController extends AbstractActionController
 
             $store->delete('CSV_Export/' . $queryParams['file_name']);
         }
-        return $this->redirect()->toRoute(null, [], true);
+        return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
     }
 
     protected function sendJob($args)
