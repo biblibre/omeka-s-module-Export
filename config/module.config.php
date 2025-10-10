@@ -131,4 +131,9 @@ return [
         'JSON' => '.json',
         'TXT' => '.txt',
     ],
+    'export' => [
+        'site_settings' => [
+            'export_public_button' => 'no',
+        ],
+    ]
 ];
