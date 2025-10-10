@@ -1,4 +1,5 @@
 <?php
+$translate = $this->plugin('translate');
 $escapeHtml = $this->plugin('escapeHtml');
 $this->headLink()->appendStylesheet($this->assetUrl('css/export.css', 'Export'));
 ?>
@@ -9,16 +10,31 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/export.css', 'Export'))
     <?php if (empty($downloads)) {
     echo $this->translate('No downloads yet');
 } ?>
-    <ul>
-        <?php foreach ($downloads as $download) {
-    $filePath = "/files/CSV_Export/" . $download ?>
 
-        <li>
-            <a class="o-icon-install" href="<?php echo $filePath ?>" > 
-                <?php echo $download ?>
-            </a>
-        </li>
-        <?php
-} ?>
-    </ul>
+<table class="tablesaw" data-tablesaw-mode="stack">
+    <thead>
+        <th class="column-title"><a><?php echo $this->translate('Title') ?> </a></th>
+        <th class="column-actions"><a><?php echo $this->translate('Actions') ?> </a></th>
+    </thead>
+    <tbody>
+        <?php foreach ($downloads as $download) {
+                $filePath = "/files/CSV_Export/" . $download ?>
+        <tr>
+            <td>
+                <a href="<?php echo $filePath ?>" > <?php echo $download ?> </a>
+            </td>
+            <td>
+                <ul class="actions">
+                    <li>
+                    <a class="o-icon-delete" href="<?php echo $this->url('admin/export/delete', [], ['query' => ['file_name' => $download]]); ?>"> </a>
+                    </li>
+                    <li>
+                        <a class="o-icon-install" href="<?php echo $filePath ?>" ></a>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <?php } ?>
+    </tbody>
+</table>
 </div>

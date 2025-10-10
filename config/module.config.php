@@ -60,6 +60,17 @@ return [
                                     ],
                                 ],
                             ],
+                            'delete' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/delete',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'Export\Controller',
+                                        'controller' => 'Index',
+                                        'action' => 'delete',
+                                    ],
+                                ],
+                            ]
                         ],
                     ],
                 ],

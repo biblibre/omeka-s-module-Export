@@ -126,6 +126,20 @@ class IndexController extends AbstractActionController
         }
     }
 
+    public function deleteAction()
+    {
+        $request = $this->getRequest();
+        $queryParams = $request->getQuery();
+
+        if ($queryParams['file_name'])
+        {
+            $store = $this->serviceLocator->get('Omeka\File\Store');
+
+            $store->delete('CSV_Export/' . $queryParams['file_name']);
+        }
+        return $this->redirect()->toRoute(null, [], true);
+    }
+
     protected function sendJob($args)
     {
         $job = $this->jobDispatcher()->dispatch(ExportJob::class, $args);
