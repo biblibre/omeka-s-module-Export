@@ -1,0 +1,53 @@
+{
+    "title": {
+        "mappings": ["dcterms:title"]
+    },
+    "month": {
+        "type": "month",
+        "mappings": ["dcterms:date"]
+    },
+    "year": {
+        "type": "year",
+        "mappings": ["dcterms:date"]
+    },
+    "note": {
+        "mappings": ["dcterms:description"]
+    },
+    "author": {
+        "mappings": ["dcterms:creator", "bibo:authorList"]
+    },
+    "doi": {
+        "mappings": ["bibo:doi"]
+    },
+    "edition": {
+        "mappings": ["bibo:edition"]
+    },
+    "editor": {
+        "mappings": ["bibo:editor", "bibo:editorList"]
+    },
+    "pages": [
+        {
+            "mappings": ["bibo:pages"]
+        },
+        {
+            "type": "format",
+            "format": "%s--%s",
+            "mappings": ["bibo:page_start", "bibo:page_end"]
+        }
+    ],
+    "annote": {
+        "mappings": ["bibo:annotates"]
+    },
+    "chapter": {
+        "mappings": ["bibo:chapter"]
+    },
+    "publisher": {
+        "mappings": ["dcterms:publisher"]
+    },
+    "type": {
+        "mappings": ["dcterms:type"]
+    },
+    "volume": {
+        "mappings": ["bibo:volume"]
+    }
+}

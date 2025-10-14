@@ -13,15 +13,11 @@ class ExportJob extends AbstractJob
         $store = $this->getServiceLocator()->get('Omeka\File\Store');
 
         $config = $services->get('Config');
-        if (empty($config['export_formats'])) {
-            throw new ConfigException('In config file: no export_formats found.'); // @translate
+        if (empty($config['export']['formats'])) {
+            throw new ConfigException('In config file: no [export][formats] found.'); // @translate
         }
 
-        if (empty($config['export_formats'][$this->getArg('format_name')])) {
-            $file_extension = "";
-        } else {
-            $file_extension = $config['export_formats'][$this->getArg('format_name')];
-        }
+        $fileExtension = $config['exports']['formats'][0]; // file extension
 
         $exporter = $services->get('Export\Exporter');
 
@@ -37,11 +33,11 @@ class ExportJob extends AbstractJob
 
         fclose($fileTemp);
 
-        $store->put($filename, sprintf("CSV_Export/omekas_$now%s", $file_extension));
+        $store->put($filename, sprintf("CSV_Export/omekas_$now%s", $fileExtension));
 
         unlink($filename);
 
-        $logger->info(sprintf("Saved in files/CSV_Export/omekas_$now%s", $file_extension));
+        $logger->info(sprintf("Saved in files/CSV_Export/omekas_$now%s", $fileExtension));
         $logger->info('Job ended');
     }
 }

@@ -8,6 +8,7 @@ class Exporter
 {
     protected $application;
     protected $fileHandle;
+    protected $bibtexConfig;
 
     public function __construct($application)
     {
@@ -64,9 +65,149 @@ class Exporter
             $this->transformToJSON($items);
         } elseif ($format == 'TXT') {
             $this->transformToTXT($items);
-        } else {
+        } elseif ($format == 'BibTex') {
+            $this->transformToBibTex($items);
+        }
+        else {
             fwrite($this->getFileHandle(), sprintf('Error: unknown file format : "%s."', $format));
         }
+    }
+
+    /*
+     * load the JSON config of DefaultBibtexMapping.json
+     * or CustomBibtexMapping.json in $this->bibtexConfig
+    */
+    protected function loadBibtexConfig()
+    {
+        $this->bibtexConfig = false;
+
+        if (file_exists(__DIR__ . "/../config/CustomBibtexMapping.json"))
+            $this->bibtexConfig = file_get_contents(__DIR__ . "/../config/CustomBibtexMapping.json");
+
+        if (!$this->bibtexConfig)
+        {
+            if (file_exists(__DIR__ . "/../config/DefaultBibtexMapping.json"))
+                $this->bibtexConfig = file_get_contents(__DIR__ . "/../config/DefaultBibtexMapping.json");
+        }
+
+        if (!$this->bibtexConfig)
+        {
+            return false;
+        }
+
+        $this->bibtexConfig = json_decode($this->bibtexConfig, true);
+            
+        return true;
+    }
+
+    protected function transformToBibTex($resources)
+    {
+        if (!$this->loadBibtexConfig())
+            return false;
+
+        $resources = $this->formatData($resources);
+
+        foreach ($resources as $resource) {
+            // may be changed in the future
+            $typeStr = '@misc';
+
+            $bibtexStr = $typeStr . ' {' . PHP_EOL;
+            foreach ($this->bibtexConfig as $bibtexPropertyName => $bibtexPropertyConfig) {
+                if (array_key_exists(0, $bibtexPropertyConfig)) {
+                    foreach ($bibtexPropertyConfig as $bibtexPropertyConfigElement) {
+
+                        $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfigElement, $resource);
+                        if (strlen($textToAdd) > 0) {
+
+                            $bibtexStr = $bibtexStr . $this->transformToBibtextOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                            break;
+
+                        }
+                    }
+                }
+                $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfig, $resource);
+                if (strlen($textToAdd) > 0) {
+                    $bibtexStr = $bibtexStr . $this->transformToBibtextOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                }
+            }
+            $bibtexStr = $bibtexStr . '}' . PHP_EOL;
+        }
+
+        
+        fwrite($this->getFileHandle(), $bibtexStr);
+    }
+
+    // reads a 'mapping' object from the json config
+    // that contains info on how to map omeka properties into bibtex properties
+    protected function transformToBibtextReadMapping($mappingObject, $resource)
+    {
+        $transformStr = '';
+
+        if (!array_key_exists('mappings', $mappingObject)) {
+            return '';
+        }
+
+        if (array_key_exists('type', $mappingObject))
+        {
+            return $this->transformToBibtextTypeHelper($mappingObject, $resource);
+        }
+
+        $bFoundAtLeastOneMapping = false;
+        foreach ($mappingObject['mappings'] as $mapping)
+        {
+            if (array_key_exists($mapping, $resource) && count($resource[$mapping]) > 0) {
+                foreach ($resource[$mapping] as $foundMapping) {
+                    if ($bFoundAtLeastOneMapping) {
+                        $transformStr = $transformStr . ' AND ';
+                    }
+
+                    $bFoundAtLeastOneMapping = true;
+                    $transformStr = $transformStr . $this->transformToBibtextEscapeString($foundMapping['@value']);
+                }
+            }
+        }
+
+        return $transformStr;
+    }
+
+    // read specified type in mapping object to do something custom with it
+    protected function transformToBibtextTypeHelper($mappingObject, $resource)
+    {
+        $transformStr = '';
+
+        $format = $mappingObject['type'];
+
+        if ($format == "month") {
+            //$date = date_create($);
+            //date_format($date, 'M');
+        }
+        else if ($format == "year") {
+
+        }
+        else if ($format == "format") {
+            foreach ($mappingObject['mappings'] as $mapping) {
+                if (!array_key_exists($mapping, $resource))
+                {
+                    return '';
+                }
+            }
+
+        }
+
+        return $transformStr;
+    }
+
+    // print "MyValue   = {" with the right spaces
+    protected function transformToBibtextOpenValueBrackets($name)
+    {
+        $printedOut = "\t" . $name . ' = { ';
+        return $printedOut;
+    }
+
+    // transform éric in {/'e}ric for example
+    protected function transformToBibtextEscapeString($string)
+    {
+        return $string;
     }
 
     protected function transformToJSON($items)
@@ -118,11 +259,13 @@ class Exporter
                         if (is_array($propertyValueElement) &&
                             array_key_exists('property_id', $propertyValueElement)
                             && array_key_exists('property_label', $propertyValueElement)) {
+
                             $bIsProperty = true;
 
                             // we found a property like dcterms:title!
 
                             if ($bIsFirstPropertyOfLabel) {
+
                                 // if first value of property, then add the "Title = " text.
                                 // we must first check if the label was renamed or not by the resource template
                                 if ($bHasResourceTemplate) {
@@ -144,11 +287,12 @@ class Exporter
                                 } else {
                                     $resourcesStr = $resourcesStr . $propertyValueElement['property_label'] . ' = ';
                                 }
-                                $resourcesStr = $resourcesStr . $propertyValueElement['@value'];
+
                                 $bIsFirstPropertyOfLabel = false;
                             } else {
-                                $resourcesStr = $resourcesStr . " ; " . $propertyValueElement['@value'];
+                                $resourcesStr = $resourcesStr . " ; ";
                             }
+                            $resourcesStr = $resourcesStr . $this->extractStringValueFromProperty($propertyValueElement);
                         }
                     }
                     if ($bIsProperty) {
@@ -159,6 +303,37 @@ class Exporter
         }
 
         fwrite($this->getFileHandle(), $resourcesStr);
+    }
+
+    // takes in a json (with arrays only) representing a resource property element like dcterms::title[0]
+    // and extracts its value (so like "My Great Book" or if it's a URL then the label of the URL, etc.)
+    protected function extractStringValueFromProperty($property)
+    {
+        if ($property['type'] == "literal")
+            return $property['@value'];
+
+        else if ($property['type'] == "uri")
+            return $property['o:label'];
+
+        else if ($property['type'] == "resource")
+            return $property['display_title'];
+
+        else if (str_contains($property['type'], "customvocab")) {
+            if (array_key_exists('@value', $property))
+            {
+                return $property['@value'];
+            }
+            else if (array_key_exists('o:label', $property))
+            {
+                return $property['o:label'];
+            }
+            else if (array_key_exists('display_title', $property))
+            {
+                return $property['display_title'];
+            }
+        }
+
+        return '';
     }
 
     protected function transformToCSV($items)

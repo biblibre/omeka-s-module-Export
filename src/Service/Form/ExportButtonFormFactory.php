@@ -11,10 +11,10 @@ class ExportButtonFormFactory implements FactoryInterface
     {
         $form = new ExportButtonForm(null, $options ?? []);
         $config = $services->get('Config');
-        if (empty($config['export_formats'])) {
-            throw new ConfigException('In config file: no export_formats found.'); // @translate
+        if (empty($config['export']['formats'])) {
+            throw new ConfigException('In config file: no [exports][formats] found.'); // @translate
         }
-        $form->availableFormats = array_keys($config['export_formats']);
+        $form->availableFormats = array_keys($config['export']['formats']);
         return $form;
     }
 }
