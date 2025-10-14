@@ -2,16 +2,9 @@
     "title": {
         "mappings": ["dcterms:title"]
     },
-    "month": {
-        "type": "month",
-        "mappings": ["dcterms:date"]
-    },
     "year": {
         "type": "year",
         "mappings": ["dcterms:date"]
-    },
-    "note": {
-        "mappings": ["dcterms:description"]
     },
     "author": {
         "mappings": ["dcterms:creator", "bibo:authorList"]

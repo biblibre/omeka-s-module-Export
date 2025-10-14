@@ -119,7 +119,7 @@ class Exporter
                         $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfigElement, $resource);
                         if (strlen($textToAdd) > 0) {
 
-                            $bibtexStr = $bibtexStr . $this->transformToBibtextOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
                             break;
 
                         }
@@ -127,12 +127,17 @@ class Exporter
                 }
                 $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfig, $resource);
                 if (strlen($textToAdd) > 0) {
-                    $bibtexStr = $bibtexStr . $this->transformToBibtextOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                    $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
                 }
             }
+            $textToAdd = sprintf("Accessed on: %s", // @translate
+                                date_format(date_create(), 'Y-d-m')
+                            );
+            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets("note") . $textToAdd . ' }' . PHP_EOL;
+            $textToAdd = sprintf("\\url{%s}", $resource["@id"]);
+            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets("howpublished") . $textToAdd . ' }' . PHP_EOL;
             $bibtexStr = $bibtexStr . '}' . PHP_EOL;
         }
-
         
         fwrite($this->getFileHandle(), $bibtexStr);
     }
@@ -162,7 +167,7 @@ class Exporter
                     }
 
                     $bFoundAtLeastOneMapping = true;
-                    $transformStr = $transformStr . $this->transformToBibtextEscapeString($foundMapping['@value']);
+                    $transformStr = $transformStr . $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($foundMapping));
                 }
             }
         }
@@ -178,11 +183,53 @@ class Exporter
         $format = $mappingObject['type'];
 
         if ($format == "month") {
-            //$date = date_create($);
-            //date_format($date, 'M');
-        }
-        else if ($format == "year") {
+            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"] > 0)))
+                return '';
 
+            $date = false;
+            $mapping = $mappingObject["mappings"][0];
+            if (array_key_exists($mapping, $resource)) {
+                $bIsFirst = true;
+                foreach ($ressource[$mapping] as $propertyElement)
+                {
+                    $value = $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($propertyElement));
+                    $date = date_create($value);
+                    if (!$date)
+                        continue;
+                    if (!$bIsFirst)
+                        $transformStr = $transformStr . ' AND ';
+
+                    $transformStr = $transformStr . date_format($date, 'M');
+
+                    $isFirst = false;
+                }
+            }
+
+            return '';
+        }
+            
+        else if ($format == "year") {
+            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"]) > 0))
+                return '';
+
+            $date = false;
+            $mapping = $mappingObject["mappings"][0];
+            if (array_key_exists($mapping, $resource)) {
+                $bIsFirst = true;
+                foreach ($ressource[$mapping] as $propertyElement)
+                {
+                    $value = $this->extractStringValueFromProperty($propertyElement);
+                    $date = date_create($value);
+                    if (!$date)
+                        continue;
+                    if (!$bIsFirst)
+                        $transformStr = $transformStr . ' AND ';
+
+                    $transformStr = $transformStr . date_format($date, 'YYYY');
+
+                    $isFirst = false;
+                }
+            }
         }
         else if ($format == "format") {
             foreach ($mappingObject['mappings'] as $mapping) {
@@ -198,16 +245,33 @@ class Exporter
     }
 
     // print "MyValue   = {" with the right spaces
-    protected function transformToBibtextOpenValueBrackets($name)
+    protected function transformToBibtexOpenValueBrackets($name)
     {
         $printedOut = "\t" . $name . ' = { ';
         return $printedOut;
     }
 
     // transform éric in {/'e}ric for example
-    protected function transformToBibtextEscapeString($string)
+    protected function transformToBibtexEscapeString($string)
     {
-        return $string;
+
+        return preg_replace_callback("/([\^\%~\\\\#\$%&_\{\}])/", function ($matches)
+        {   
+            $map = array( 
+                "#"=>"\\#",
+                "$"=>"\\$",
+                "%"=>"\\%",
+                "&"=>"\\&",
+                "~"=>"\\~{}",
+                "_"=>"\\_",
+                "^"=>"\\^{}",
+                "\\"=>"\\textbackslash",
+                "{"=>"\\{",
+                "}"=>"\\}",
+            );
+            return $map[$matches];
+        },
+        $string);
     }
 
     protected function transformToJSON($items)
