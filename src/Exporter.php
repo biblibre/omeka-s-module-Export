@@ -157,13 +157,18 @@ class Exporter
             return $this->transformToBibtextTypeHelper($mappingObject, $resource);
         }
 
+        $separator = ' AND '; // @ translate
+        if (array_key_exists('separator', $mappingObject) && is_string($mappingObject['separator'])) {
+            $separator = $mappingObject['separator'];
+        }
+
         $bFoundAtLeastOneMapping = false;
         foreach ($mappingObject['mappings'] as $mapping)
         {
             if (array_key_exists($mapping, $resource) && count($resource[$mapping]) > 0) {
                 foreach ($resource[$mapping] as $foundMapping) {
                     if ($bFoundAtLeastOneMapping) {
-                        $transformStr = $transformStr . ' AND ';
+                        $transformStr = $transformStr . $separator;
                     }
 
                     $bFoundAtLeastOneMapping = true;
@@ -180,9 +185,14 @@ class Exporter
     {
         $transformStr = '';
 
-        $format = $mappingObject['type'];
+        $type = $mappingObject['type'];
 
-        if ($format == "month") {
+        $separator = ' AND '; // @ translate
+        if (array_key_exists('separator', $mappingObject) && is_string($mappingObject['separator'])) {
+            $separator = $mappingObject['separator'];
+        }
+
+        if ($type == "month") {
             if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"] > 0)))
                 return '';
 
@@ -197,7 +207,7 @@ class Exporter
                     if (!$date)
                         continue;
                     if (!$bIsFirst)
-                        $transformStr = $transformStr . ' AND ';
+                        $transformStr = $transformStr . $separator;
 
                     $transformStr = $transformStr . date_format($date, 'M');
 
@@ -208,7 +218,7 @@ class Exporter
             return '';
         }
             
-        else if ($format == "year") {
+        else if ($type == "year") {
             if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"]) > 0))
                 return '';
 
@@ -219,11 +229,14 @@ class Exporter
                 foreach ($ressource[$mapping] as $propertyElement)
                 {
                     $value = $this->extractStringValueFromProperty($propertyElement);
+
+                    // returns false if it fails
                     $date = date_create($value);
                     if (!$date)
                         continue;
+
                     if (!$bIsFirst)
-                        $transformStr = $transformStr . ' AND ';
+                        $transformStr = $transformStr . $separator;
 
                     $transformStr = $transformStr . date_format($date, 'YYYY');
 
@@ -231,14 +244,44 @@ class Exporter
                 }
             }
         }
-        else if ($format == "format") {
+
+        else if ($type == "format") {
+            // user must have specified a format 
+            if (!array_key_exists('format', $mappingObject)) {
+                return '';
+            }
+
+            $args = [];
             foreach ($mappingObject['mappings'] as $mapping) {
+                
+                // every argument must exist
                 if (!array_key_exists($mapping, $resource))
                 {
                     return '';
                 }
+
+                $currentArg = '';
+
+                foreach ($resource[$mapping] as $resourceValue)
+                {
+                    // normally there should be only one value per mapping but just in case...
+                    if ($currentArg != '')
+                        $currentArg = $currentArg . $separator; // @ translate
+
+                    $currentArg = $currentArg . $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($resourceValue));
+                }
+
+                // add the current arg to the list of args
+                $args[] = $currentArg;
             }
 
+            // format may be ill-formated by user so be safe
+            try {
+                $transformStr = vsprintf($mappingObject['format'], $args);
+            }
+            catch (ValueError $e) {
+                return '';
+            }
         }
 
         return $transformStr;

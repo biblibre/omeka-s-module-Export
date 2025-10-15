@@ -7,7 +7,8 @@
         "mappings": ["dcterms:date"]
     },
     "author": {
-        "mappings": ["dcterms:creator", "bibo:authorList"]
+        "mappings": ["dcterms:creator", "bibo:authorList"],
+        "separator": " + "
     },
     "doi": {
         "mappings": ["bibo:doi"]
@@ -25,7 +26,7 @@
         {
             "type": "format",
             "format": "%s--%s",
-            "mappings": ["bibo:page_start", "bibo:page_end"]
+            "mappings": ["bibo:pageStart", "bibo:pageEnd"]
         }
     ],
     "annote": {
