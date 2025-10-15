@@ -226,7 +226,7 @@ class Exporter
             $mapping = $mappingObject["mappings"][0];
             if (array_key_exists($mapping, $resource)) {
                 $bIsFirst = true;
-                foreach ($ressource[$mapping] as $propertyElement)
+                foreach ($resource[$mapping] as $propertyElement)
                 {
                     $value = $this->extractStringValueFromProperty($propertyElement);
 
@@ -238,7 +238,7 @@ class Exporter
                     if (!$bIsFirst)
                         $transformStr = $transformStr . $separator;
 
-                    $transformStr = $transformStr . date_format($date, 'YYYY');
+                    $transformStr = $transformStr . date_format($date, 'Y');
 
                     $isFirst = false;
                 }
