@@ -498,7 +498,8 @@ class Exporter
         else if ($property['type'] == "resource")
             return $property['display_title'];
 
-        else if (str_contains($property['type'], "customvocab")) {
+        else if (str_contains($property['type'], "customvocab") ||
+                 str_contains($property['type'], "valuesuggest") ) {
             if (array_key_exists('@value', $property))
             {
                 return $property['@value'];
