@@ -17,7 +17,7 @@ class ExportJob extends AbstractJob
             throw new ConfigException('In config file: no [export][formats] found.'); // @translate
         }
 
-        $fileExtension = $config['exports']['formats'][0]; // file extension
+        $fileExtension = $config['export']['formats'][$this->getArg('format_name')][0]; // file extension
 
         $exporter = $services->get('Export\Exporter');
 
