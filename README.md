@@ -56,7 +56,8 @@ Lastly, you may specify a "type":
 "key": {
     "mappings": ["dcterms:myKey"],
     "type": "year"
-}```
+}
+```
 This means it will try to read "dcterms:myKey" as a date and export the year. It if fails, it doesn't export that "key" (or try the next mapping if there is one).
 
 This is the list of all "types" avaiables currently:
@@ -77,7 +78,8 @@ each "%s" will be replaced with the values of the "mappings" in order. If one of
 ```json
 "howpublished": {
     "type": "url"
-}```
+}
+```
 here the "howpublished" will be equal to something like "\\url{https://example.com/api/items/102}".
 
 - "accessDate": exports the date of access of the item.
