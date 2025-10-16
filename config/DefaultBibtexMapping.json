@@ -2,33 +2,52 @@
     "title": {
         "mappings": ["dcterms:title"]
     },
-    "year": {
-        "type": "year",
-        "mappings": ["dcterms:date"]
-    },
+    "year": [
+        {
+            "type": "year",
+            "mappings": ["dcterms:date"]
+        },
+        {
+            "mappings": ["dcterms:date"]
+        },
+        {
+            "type": "year",
+            "mappings": ["dcterms:issued"]
+        },
+        {
+            "mappings": ["dcterms:issued"]
+        }
+    ],
     "author": {
-        "mappings": ["dcterms:creator", "bibo:authorList"],
-        "separator": " + "
+        "mappings": ["dcterms:creator"]
     },
     "doi": {
         "mappings": ["bibo:doi"]
     },
-    "edition": {
-        "mappings": ["bibo:edition"]
-    },
+    "edition": [
+        {
+            "mappings": ["bibo:edition"]
+        },
+        {
+            "mappings": ["dcterms:publisher"]
+        }
+    ],
     "editor": {
-        "mappings": ["bibo:editor", "bibo:editorList"]
+        "mappings": ["bibo:editor"]
     },
     "pages": [
         {
-            "mappings": ["bibo:pages"]
+            "type": "format",
+            "format": "%s - %s",
+            "mappings": ["bibo:pageStart", "bibo:pageEnd"]
         },
         {
-            "type": "format",
-            "format": "%s--%s",
-            "mappings": ["bibo:pageStart", "bibo:pageEnd"]
+            "mappings": ["bibo:pages"]
         }
     ],
+    "series": {
+        "mappings": ["dcterms:isPartOf"]
+    },
     "annote": {
         "mappings": ["bibo:annotates"]
     },
@@ -43,5 +62,11 @@
     },
     "volume": {
         "mappings": ["bibo:volume"]
+    },
+    "howpublished": {
+        "type": "resourceUrl"
+    },
+    "note": {
+        "type": "accessDate"
     }
 }

@@ -130,12 +130,6 @@ class Exporter
                     $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
                 }
             }
-            $textToAdd = sprintf("Accessed on: %s", // @translate
-                                date_format(date_create(), 'Y-d-m')
-                            );
-            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets("note") . $textToAdd . ' }' . PHP_EOL;
-            $textToAdd = sprintf("\\url{%s}", $resource["@id"]);
-            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets("howpublished") . $textToAdd . ' }' . PHP_EOL;
             $bibtexStr = $bibtexStr . '}' . PHP_EOL;
         }
         
@@ -149,7 +143,11 @@ class Exporter
         $transformStr = '';
 
         if (!array_key_exists('mappings', $mappingObject)) {
-            return '';
+            if (!array_key_exists('type', $mappingObject) ||
+                ($mappingObject['type'] != 'accessDate' && $mappingObject['type'] != 'resourceUrl'))
+            {
+                return '';
+            }
         }
 
         if (array_key_exists('type', $mappingObject))
@@ -282,6 +280,17 @@ class Exporter
             catch (ValueError $e) {
                 return '';
             }
+        }
+
+        else if ($type == "resourceUrl") {
+            return sprintf("\\url{%s}", $resource["@id"]);
+        }
+
+        else if ($type == "accessDate") {
+            return sprintf("Accessed on: %s", // @translate
+                                date_format(date_create(), 'Y-d-m')
+                            );
+
         }
 
         return $transformStr;
