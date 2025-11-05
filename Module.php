@@ -5,6 +5,8 @@ use Export\Form\SiteSettingsFieldset;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Module\AbstractModule;
 use Laminas\Mvc\MvcEvent;
+use Laminas\Mvc\Controller\AbstractController;
+use Export\Form\ConfigForm;
 
 class Module extends AbstractModule
 {
@@ -40,6 +42,26 @@ class Module extends AbstractModule
         $acl = $this->getServiceLocator()->get('Omeka\Acl');
 
         $acl->allow(null, ['Export\Controller\Site\Index']);
+    }
+
+    public function upgrade($oldVersion, $newVersion, \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator)
+    {
+        if (version_compare($oldVersion, '2.0.0', '<')) {
+            $store = $serviceLocator->get('Omeka\File\Store');
+
+            $storePath = OMEKA_PATH . '/files/';
+            $oldDir = 'CSV_Export';
+            $newDir = 'Export';
+
+            // not guaranteed to work! Pemission issues, etc. but it is not critical
+            // and will only issue a warning
+            if ( !is_dir( $storePath . $oldDir ) ) {
+                mkdir( $storePath . $newDir );       
+            }
+            else {
+                rename($storePath . $oldDir, $storePath . $newDir);
+            }
+        }
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
@@ -98,6 +120,20 @@ class Module extends AbstractModule
 
     public function echoExportButtonHtml($event)
     {
+        $params = $this->getServiceLocator()->get('Application')->getMvcEvent()->getRouteMatch()->getParams();
+
+        $fromAdmin = false;
+
+        $query = [
+            'id' => $params['id'],
+        ];
+
+        if ($params['controller'] == 'Omeka\Controller\Admin\Item' ||
+            $params['controller'] == 'Omeka\Controller\Admin\ItemSet' ||
+            $params['controller'] == 'Omeka\Controller\Admin\Media') {
+            $fromAdmin = true;
+        }
+
         $publicExportButtonPosition = $this->getServiceLocator()->get('Omeka\Settings\Site')->get('export_public_button', 'no');
 
         if ($event->getName() == 'view.show.after' && $publicExportButtonPosition == 'after'
@@ -105,29 +141,29 @@ class Module extends AbstractModule
         || $event->getName() == 'view.show.sidebar')
         {
             $view = $event->getTarget();
-            echo $view->exportButton();
+            echo $view->exportButton($fromAdmin, $params['controller'], $query);
         }
 
     }
     public function handleSiteSettings($event)
     {
-        $settingsService = $this->getServiceLocator()->get('Omeka\Settings\Site');
-
-        $defaultSettings = $this->getModuleSiteConfig();
-
-        $currentSettings = [];
-        foreach ($defaultSettings as $name => $value)
-        {
-            $currentSettings[$name] = $settingsService->get($name, $value);
-        }
-
         $services = $this->getServiceLocator();
         $forms = $services->get('FormElementManager');
         $siteSettings = $services->get('Omeka\Settings\Site');
 
         $fieldset = $forms->get(SiteSettingsFieldset::class);
         $fieldset->setName('export');
+
+        $elements = $fieldset->getElements();
+
+        $currentSettings = [];
+        foreach ($elements as $name => $element) {
+            $services->get('Omeka\Logger')->debug(var_export($siteSettings->get($name, $element->getValue()), true));
+            $currentSettings[$name] = $siteSettings->get($name, $element->getValue());
+        }
+
         $fieldset->populateValues($currentSettings);
+
         $form = $event->getTarget();
         $groups = $form->getOption('element_groups');
         if (isset($groups)) {
@@ -139,5 +175,4 @@ class Module extends AbstractModule
         } else {
             $form->add($fieldset);
         }
-    } 
 }
