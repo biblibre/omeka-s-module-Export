@@ -10,6 +10,13 @@ class Exporter
     protected $fileHandle;
     protected $bibtexConfig;
 
+    const IMPLEMENTED_FORMATS = [
+        'CSV' => ['.csv', 'text/csv'],
+        'JSON' => ['.json', 'application/json'],
+        'TXT' => ['.txt', 'text/plain'],
+        'BibTex' => ['.bib', 'application/x-bibtex']
+    ];
+
     public function __construct($application)
     {
         $this->application = $application;
@@ -81,13 +88,13 @@ class Exporter
     {
         $this->bibtexConfig = false;
 
-        if (file_exists(__DIR__ . "/../config/CustomBibtexMapping.json"))
-            $this->bibtexConfig = file_get_contents(__DIR__ . "/../config/CustomBibtexMapping.json");
+        if (file_exists(__DIR__ . "/../dataCustomBibtexMapping.json"))
+            $this->bibtexConfig = file_get_contents(__DIR__ . "/../data/CustomBibtexMapping.json");
 
         if (!$this->bibtexConfig)
         {
-            if (file_exists(__DIR__ . "/../config/DefaultBibtexMapping.json"))
-                $this->bibtexConfig = file_get_contents(__DIR__ . "/../config/DefaultBibtexMapping.json");
+            if (file_exists(__DIR__ . "/../data/DefaultBibtexMapping.json"))
+                $this->bibtexConfig = file_get_contents(__DIR__ . "/../data/DefaultBibtexMapping.json");
         }
 
         if (!$this->bibtexConfig)
@@ -191,14 +198,14 @@ class Exporter
         }
 
         if ($type == "month") {
-            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"] > 0)))
+            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"])  > 0))
                 return '';
 
             $date = false;
             $mapping = $mappingObject["mappings"][0];
             if (array_key_exists($mapping, $resource)) {
                 $bIsFirst = true;
-                foreach ($ressource[$mapping] as $propertyElement)
+                foreach ($resource[$mapping] as $propertyElement)
                 {
                     $value = $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($propertyElement));
                     $date = date_create($value);
@@ -277,7 +284,7 @@ class Exporter
             try {
                 $transformStr = vsprintf($mappingObject['format'], $args);
             }
-            catch (ValueError $e) {
+            catch (\ValueError $e) {
                 return '';
             }
         }
@@ -567,7 +574,7 @@ class Exporter
         if ($resultCount > 0) {
             $collectionHeaders = array_keys($collection[0]);
             $header = array_merge($collectionHeaders, $properties);
-            fputcsv($output, $header);
+            fputcsv($output, array_merge($header, ['json']));
             foreach ($collection as $item) {
                 if (is_array($item)) {
                     $outputItem = [];
