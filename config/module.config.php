@@ -107,7 +107,7 @@ return [
                         'visible' => false,
                     ],
                     [
-                        'label' => 'Download List', // @translate
+                        'label' => 'Export List', // @translate
                         'route' => 'admin/export/list',
                         'controller' => 'List',
                         'action' => 'list',
