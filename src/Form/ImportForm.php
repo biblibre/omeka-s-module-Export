@@ -7,9 +7,9 @@ use Laminas\Form\Form;
 class ImportForm extends Form
 {
     /**
-     * @var array[String]
+     * @var array[string]
      */
-    public $availableFormats = ["CSV"];
+    public $availableFormats = [];
 
     public function init()
     {

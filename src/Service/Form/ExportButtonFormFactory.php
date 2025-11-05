@@ -10,11 +10,13 @@ class ExportButtonFormFactory implements FactoryInterface
     public function __invoke(ContainerInterface $services, $requestedName, array $options = null)
     {
         $form = new ExportButtonForm(null, $options ?? []);
-        $config = $services->get('Config');
-        if (empty($config['export']['formats'])) {
-            throw new ConfigException('In config file: no [exports][formats] found.'); // @translate
-        }
-        $form->availableFormats = array_keys($config['export']['formats']);
+        $settings = $services->get('Omeka\Settings\Site');
+
+        if (!empty($options["admin"]))
+            $form->availableFormats = array_keys(\Export\Exporter::IMPLEMENTED_FORMATS);
+        else
+            $form->availableFormats = $settings->get('export_enabled_formats', []);
+
         return $form;
     }
 }

@@ -6,9 +6,9 @@ use Laminas\Form\Form;
 class ExportButtonForm extends Form
 {
     /**
-     * @var array[String]
+     * @var array[string]
      */
-    public $availableFormats = ["CSV"];
+    public $availableFormats = [];
 
     public function init()
     {
