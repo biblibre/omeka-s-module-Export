@@ -21,11 +21,11 @@ class SiteSettingsFieldset extends Fieldset
                 'type' => Element\Radio::class,
                 'options' => [
                     'element_group' => 'export',
-                    'label' => 'Export button placement', // @translate
+                    'label' => 'Public export button placement', // @translate
                     'value_options' => [
                         'no' => 'No', // @translate
-                        'before' => 'Before', // @translate
-                        'after' => 'After', // @translate
+                        'before' => 'Before the resource', // @translate
+                        'after' => 'After the resource', // @translate
                     ],
                 ],
                 'attributes' => [

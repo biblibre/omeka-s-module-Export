@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 13:47+0100\n"
+"POT-Creation-Date: 2025-11-05 14:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,15 +55,15 @@ msgid "Accessed on: %s"
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:24
-msgid "Export button placement"
+msgid "Public export button placement"
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:27
-msgid "Before"
+msgid "Before the resource"
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:28
-msgid "After"
+msgid "After the resource"
 msgstr ""
 
 #: src/Form/SiteSettingsFieldset.php:52
