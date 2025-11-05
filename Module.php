@@ -156,4 +156,5 @@ class Module extends AbstractModule
         } else {
             $form->add($fieldset);
         }
+    }
 }
