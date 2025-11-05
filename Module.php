@@ -15,25 +15,6 @@ class Module extends AbstractModule
         return include __DIR__ . '/config/module.config.php';
     }
 
-    /*
-     * returns the site config of the module but uses a static variable for optimization
-    */
-    protected function getModuleSiteConfig(): ?array
-    {
-        static $localConfig;
-
-        if (!isset($localConfig)) {
-            $localConfig = $this->getConfig();
-            $localConfig = $localConfig['export'] ?? false;
-        }
-
-        if ($localConfig === false) {
-            return null;
-        }
-
-        return $localConfig['site_settings'] ?? [];
-    }
-
     public function onBootstrap(MvcEvent $event): void
     {
         parent::onBootstrap($event);
