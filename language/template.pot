@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 14:41+0100\n"
+"POT-Creation-Date: 2025-11-05 17:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,15 +26,15 @@ msgid "Export Settings"
 msgstr ""
 
 #: view/export/list/list.phtml:7
-msgid "Download list"
+msgid "Export list"
 msgstr ""
 
 #: view/export/list/list.phtml:9
-msgid "Previous downloads from tasks"
+msgid "Previous exports from tasks"
 msgstr ""
 
 #: view/export/list/list.phtml:11
-msgid "No downloads yet"
+msgid "No exports yet"
 msgstr ""
 
 #: view/export/list/list.phtml:17
@@ -46,7 +46,7 @@ msgid "Download"
 msgstr ""
 
 #: config/module.config.php:110
-msgid "Download List"
+msgid "Export List"
 msgstr ""
 
 #: src/Exporter.php:285
