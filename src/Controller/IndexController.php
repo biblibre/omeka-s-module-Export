@@ -87,17 +87,8 @@ class IndexController extends AbstractActionController
             }
             fclose($fileTemp);
 
-            // get format extension
-            $config = $this->serviceLocator->get('Config');
-            if (empty($config['export']['formats'])) {
-                throw new ConfigException('In config file: no [export][formats] found.'); // @translate
-            }
-            if (empty($config['export']['formats'][$postParams['format_name']])) {
-                throw new ConfigException('Invalid format name "%s".'); // @translate
-            }
-
-            $fileExtension = $config['export']['formats'][$postParams['format_name']][0]; // extension
-            $fileMime = $config['export']['formats'][$postParams['format_name']][1]; // MIME
+            $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][0]; // extension
+            $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][1]; // MIME
 
             $response = $this->getResponse();
             $response->setContent($rows);
@@ -135,7 +126,7 @@ class IndexController extends AbstractActionController
         {
             $store = $this->serviceLocator->get('Omeka\File\Store');
 
-            $store->delete('CSV_Export/' . $queryParams['file_name']);
+            $store->delete('Export/' . $queryParams['file_name']);
         }
         return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
     }

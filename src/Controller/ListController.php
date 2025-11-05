@@ -10,7 +10,7 @@ class ListController extends AbstractActionController
     {
         $downloads = [];
 
-        $directoryPath = 'files/CSV_Export';
+        $directoryPath = 'files/Export';
         if (is_dir($directoryPath)) {
             $downloads = array_diff(scandir($directoryPath, SCANDIR_SORT_DESCENDING), ['..', '.']);
         }

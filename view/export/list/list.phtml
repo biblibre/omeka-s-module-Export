@@ -18,7 +18,7 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/export.css', 'Export'))
     </thead>
     <tbody>
         <?php foreach ($downloads as $download) {
-                $filePath = "/files/CSV_Export/" . $download ?>
+                $filePath = "/files/Export/" . $download ?>
         <tr>
             <td>
                 <a href="<?php echo $filePath ?>" > <?php echo $download ?> </a>
