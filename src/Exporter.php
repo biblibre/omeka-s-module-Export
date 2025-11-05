@@ -11,10 +11,10 @@ class Exporter
     protected $bibtexConfig;
 
     const IMPLEMENTED_FORMATS = [
-        'CSV' => ['.csv', 'text/csv'],
-        'JSON' => ['.json', 'application/json'],
-        'TXT' => ['.txt', 'text/plain'],
-        'BibTex' => ['.bib', 'application/x-bibtex'],
+        'CSV' => ['extension' => '.csv', 'mime' => 'text/csv'],
+        'JSON' => ['extension' => '.json', 'mime' => 'application/json'],
+        'TXT' => ['extension' => '.txt', 'mime' => 'text/plain'],
+        'BibTex' => ['extension' => '.bib', 'mime' => 'application/x-bibtex'],
     ];
 
     public function __construct($application)

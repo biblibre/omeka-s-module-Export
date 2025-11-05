@@ -57,4 +57,14 @@ class SiteSettingsFieldset extends Fieldset
                 ],
             ]);
     }
+
+    public function getInputFilterSpecification()
+    {
+        return [
+            'export_enabled_formats' => [
+                'required' => false,     // not required
+                'allow_empty' => true,   // allow empty array / no checkboxes checked
+            ],
+        ];
+    }
 }

@@ -26,7 +26,7 @@ class ExportJob extends AbstractJob
 
         fclose($fileTemp);
 
-        $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$this->getArg('format_name')] ?? "";
+        $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$this->getArg('format_name')]['extension'] ?? "";
 
         $store->put($filename, sprintf("Export/omekas_$now%s", $fileExtension));
 

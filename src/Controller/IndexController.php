@@ -87,8 +87,8 @@ class IndexController extends AbstractActionController
             }
             fclose($fileTemp);
 
-            $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][0]; // extension
-            $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][1]; // MIME
+            $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['extension'];
+            $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['mime'];
 
             $response = $this->getResponse();
             $response->setContent($rows);
