@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 13:47+0100\n"
+"POT-Creation-Date: 2025-11-05 14:41+0100\n"
 "PO-Revision-Date: 2025-11-05 12:38+0000\n"
 "Last-Translator: Abel Boilevin, 2025\n"
 "Language-Team: French (https://app.transifex.com/biblibre-/teams/298658/fr/)\n"
@@ -59,16 +59,16 @@ msgid "Accessed on: %s"
 msgstr "Accédé le: %s"
 
 #: src/Form/SiteSettingsFieldset.php:24
-msgid "Export button placement"
-msgstr "Placement du bouton d'export"
+msgid "Public export button placement"
+msgstr "Placement du bouton d'export public"
 
 #: src/Form/SiteSettingsFieldset.php:27
-msgid "Before"
-msgstr "Avant"
+msgid "Before the resource"
+msgstr "Avant la ressource"
 
 #: src/Form/SiteSettingsFieldset.php:28
-msgid "After"
-msgstr "Après"
+msgid "After the resource"
+msgstr "Après la ressource"
 
 #: src/Form/SiteSettingsFieldset.php:52
 msgid "Export formats enabled for this site"
