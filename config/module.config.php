@@ -136,16 +136,5 @@ return [
         'factories' => [
             'Export\Exporter' => Service\ExporterFactory::class,
         ],
-    ],
-    'export' => [
-        'site_settings' => [
-            'export_public_button' => 'no',
-        ],
-        'formats' => [
-                'CSV' => ['.csv', 'text/csv'],
-                'JSON' => ['.json', 'application/json'],
-                'TXT' => ['.txt', 'text/plain'],
-                'BibTex' => ['.bib', 'application/x-bibtex']
-        ],
     ]
 ];
