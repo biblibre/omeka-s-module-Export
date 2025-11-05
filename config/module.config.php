@@ -70,7 +70,7 @@ return [
                                         'action' => 'delete',
                                     ],
                                 ],
-                            ]
+                            ],
                         ],
                     ],
                 ],
@@ -136,5 +136,5 @@ return [
         'factories' => [
             'Export\Exporter' => Service\ExporterFactory::class,
         ],
-    ]
+    ],
 ];

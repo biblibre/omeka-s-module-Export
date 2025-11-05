@@ -17,7 +17,6 @@ class ExportButton extends AbstractHelper
 
     public function __invoke(bool $admin, string $controller, array $query)
     {
-
         $url = null;
 
         $form = null;

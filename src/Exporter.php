@@ -14,7 +14,7 @@ class Exporter
         'CSV' => ['.csv', 'text/csv'],
         'JSON' => ['.json', 'application/json'],
         'TXT' => ['.txt', 'text/plain'],
-        'BibTex' => ['.bib', 'application/x-bibtex']
+        'BibTex' => ['.bib', 'application/x-bibtex'],
     ];
 
     public function __construct($application)
@@ -74,8 +74,7 @@ class Exporter
             $this->transformToTXT($items);
         } elseif ($format == 'BibTex') {
             $this->transformToBibTex($items);
-        }
-        else {
+        } else {
             fwrite($this->getFileHandle(), sprintf('Error: unknown file format : "%s."', $format));
         }
     }
@@ -88,29 +87,30 @@ class Exporter
     {
         $this->bibtexConfig = false;
 
-        if (file_exists(__DIR__ . "/../dataCustomBibtexMapping.json"))
+        if (file_exists(__DIR__ . "/../dataCustomBibtexMapping.json")) {
             $this->bibtexConfig = file_get_contents(__DIR__ . "/../data/CustomBibtexMapping.json");
-
-        if (!$this->bibtexConfig)
-        {
-            if (file_exists(__DIR__ . "/../data/DefaultBibtexMapping.json"))
-                $this->bibtexConfig = file_get_contents(__DIR__ . "/../data/DefaultBibtexMapping.json");
         }
 
-        if (!$this->bibtexConfig)
-        {
+        if (!$this->bibtexConfig) {
+            if (file_exists(__DIR__ . "/../data/DefaultBibtexMapping.json")) {
+                $this->bibtexConfig = file_get_contents(__DIR__ . "/../data/DefaultBibtexMapping.json");
+            }
+        }
+
+        if (!$this->bibtexConfig) {
             return false;
         }
 
         $this->bibtexConfig = json_decode($this->bibtexConfig, true);
-            
+
         return true;
     }
 
     protected function transformToBibTex($resources)
     {
-        if (!$this->loadBibtexConfig())
+        if (!$this->loadBibtexConfig()) {
             return false;
+        }
 
         $resources = $this->formatData($resources);
 
@@ -122,13 +122,10 @@ class Exporter
             foreach ($this->bibtexConfig as $bibtexPropertyName => $bibtexPropertyConfig) {
                 if (array_key_exists(0, $bibtexPropertyConfig)) {
                     foreach ($bibtexPropertyConfig as $bibtexPropertyConfigElement) {
-
                         $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfigElement, $resource);
                         if (strlen($textToAdd) > 0) {
-
                             $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
                             break;
-
                         }
                     }
                 }
@@ -139,7 +136,7 @@ class Exporter
             }
             $bibtexStr = $bibtexStr . '}' . PHP_EOL;
         }
-        
+
         fwrite($this->getFileHandle(), $bibtexStr);
     }
 
@@ -151,14 +148,12 @@ class Exporter
 
         if (!array_key_exists('mappings', $mappingObject)) {
             if (!array_key_exists('type', $mappingObject) ||
-                ($mappingObject['type'] != 'accessDate' && $mappingObject['type'] != 'resourceUrl'))
-            {
+                ($mappingObject['type'] != 'accessDate' && $mappingObject['type'] != 'resourceUrl')) {
                 return '';
             }
         }
 
-        if (array_key_exists('type', $mappingObject))
-        {
+        if (array_key_exists('type', $mappingObject)) {
             return $this->transformToBibtextTypeHelper($mappingObject, $resource);
         }
 
@@ -168,8 +163,7 @@ class Exporter
         }
 
         $bFoundAtLeastOneMapping = false;
-        foreach ($mappingObject['mappings'] as $mapping)
-        {
+        foreach ($mappingObject['mappings'] as $mapping) {
             if (array_key_exists($mapping, $resource) && count($resource[$mapping]) > 0) {
                 foreach ($resource[$mapping] as $foundMapping) {
                     if ($bFoundAtLeastOneMapping) {
@@ -198,21 +192,23 @@ class Exporter
         }
 
         if ($type == "month") {
-            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"])  > 0))
+            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"]) > 0)) {
                 return '';
+            }
 
             $date = false;
             $mapping = $mappingObject["mappings"][0];
             if (array_key_exists($mapping, $resource)) {
                 $bIsFirst = true;
-                foreach ($resource[$mapping] as $propertyElement)
-                {
+                foreach ($resource[$mapping] as $propertyElement) {
                     $value = $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($propertyElement));
                     $date = date_create($value);
-                    if (!$date)
+                    if (!$date) {
                         continue;
-                    if (!$bIsFirst)
+                    }
+                    if (!$bIsFirst) {
                         $transformStr = $transformStr . $separator;
+                    }
 
                     $transformStr = $transformStr . date_format($date, 'M');
 
@@ -221,57 +217,54 @@ class Exporter
             }
 
             return '';
-        }
-            
-        else if ($type == "year") {
-            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"]) > 0))
+        } elseif ($type == "year") {
+            if (!is_array($mappingObject["mappings"]) || !(count($mappingObject["mappings"]) > 0)) {
                 return '';
+            }
 
             $date = false;
             $mapping = $mappingObject["mappings"][0];
             if (array_key_exists($mapping, $resource)) {
                 $bIsFirst = true;
-                foreach ($resource[$mapping] as $propertyElement)
-                {
+                foreach ($resource[$mapping] as $propertyElement) {
                     $value = $this->extractStringValueFromProperty($propertyElement);
 
                     // returns false if it fails
                     $date = date_create($value);
-                    if (!$date)
+                    if (!$date) {
                         continue;
+                    }
 
-                    if (!$bIsFirst)
+                    if (!$bIsFirst) {
                         $transformStr = $transformStr . $separator;
+                    }
 
                     $transformStr = $transformStr . date_format($date, 'Y');
 
                     $isFirst = false;
                 }
             }
-        }
-
-        else if ($type == "format") {
-            // user must have specified a format 
+        } elseif ($type == "format") {
+            // user must have specified a format
             if (!array_key_exists('format', $mappingObject)) {
                 return '';
             }
 
             $args = [];
             foreach ($mappingObject['mappings'] as $mapping) {
-                
+
                 // every argument must exist
-                if (!array_key_exists($mapping, $resource))
-                {
+                if (!array_key_exists($mapping, $resource)) {
                     return '';
                 }
 
                 $currentArg = '';
 
-                foreach ($resource[$mapping] as $resourceValue)
-                {
+                foreach ($resource[$mapping] as $resourceValue) {
                     // normally there should be only one value per mapping but just in case...
-                    if ($currentArg != '')
-                        $currentArg = $currentArg . $separator; // @ translate
+                    if ($currentArg != '') {
+                        $currentArg = $currentArg . $separator;
+                    } // @ translate
 
                     $currentArg = $currentArg . $this->transformToBibtexEscapeString($this->extractStringValueFromProperty($resourceValue));
                 }
@@ -283,21 +276,15 @@ class Exporter
             // format may be ill-formated by user so be safe
             try {
                 $transformStr = vsprintf($mappingObject['format'], $args);
-            }
-            catch (\ValueError $e) {
+            } catch (\ValueError $e) {
                 return '';
             }
-        }
-
-        else if ($type == "resourceUrl") {
+        } elseif ($type == "resourceUrl") {
             return sprintf("\\url{%s}", $resource["@id"]);
-        }
-
-        else if ($type == "accessDate") {
+        } elseif ($type == "accessDate") {
             return sprintf("Accessed on: %s", // @translate
                                 date_format(date_create(), 'Y-d-m')
                             );
-
         }
 
         return $transformStr;
@@ -315,7 +302,7 @@ class Exporter
     {
         $escapedString = "";
 
-        $map = array( 
+        $map = [
             "#", "\\#",
             "$", "\\$",
             "%", "\\%",
@@ -386,22 +373,21 @@ class Exporter
             "Ø", "\\O",
             "ł", "\\l",
             "Ł", "\\L",
-        );
+        ];
 
         $bFound = false;
 
         foreach (mb_str_split($string) as $char) {
-            for ($i = 0; $i < count($map); $i = $i + 2)
-            {
-                if ($char == $map[$i])
-                {
+            for ($i = 0; $i < count($map); $i = $i + 2) {
+                if ($char == $map[$i]) {
                     $escapedString = $escapedString . $map[$i + 1];
                     $bFound = true;
                     break;
                 }
             }
-            if (!$bFound)
+            if (!$bFound) {
                 $escapedString = $escapedString . $char;
+            }
         }
         return $escapedString;
     }
@@ -455,7 +441,6 @@ class Exporter
                         if (is_array($propertyValueElement) &&
                             array_key_exists('property_id', $propertyValueElement)
                             && array_key_exists('property_label', $propertyValueElement)) {
-
                             $bIsProperty = true;
 
                             // we found a property like dcterms:title!
@@ -505,27 +490,19 @@ class Exporter
     // and extracts its value (so like "My Great Book" or if it's a URL then the label of the URL, etc.)
     protected function extractStringValueFromProperty($property)
     {
-        if ($property['type'] == "literal")
+        if ($property['type'] == "literal") {
             return $property['@value'];
-
-        else if ($property['type'] == "uri")
+        } elseif ($property['type'] == "uri") {
             return $property['o:label'];
-
-        else if ($property['type'] == "resource")
+        } elseif ($property['type'] == "resource") {
             return $property['display_title'];
-
-        else if (str_contains($property['type'], "customvocab") ||
-                 str_contains($property['type'], "valuesuggest") ) {
-            if (array_key_exists('@value', $property))
-            {
+        } elseif (str_contains($property['type'], "customvocab") ||
+                 str_contains($property['type'], "valuesuggest")) {
+            if (array_key_exists('@value', $property)) {
                 return $property['@value'];
-            }
-            else if (array_key_exists('o:label', $property))
-            {
+            } elseif (array_key_exists('o:label', $property)) {
                 return $property['o:label'];
-            }
-            else if (array_key_exists('display_title', $property))
-            {
+            } elseif (array_key_exists('display_title', $property)) {
                 return $property['display_title'];
             }
         }

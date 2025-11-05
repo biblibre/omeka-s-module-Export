@@ -1,10 +1,9 @@
 <?php declare(strict_types=1);
 
 namespace Export\Form;
+
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
-
-use MyConstant;
 
 class SiteSettingsFieldset extends Fieldset
 {
@@ -12,10 +11,9 @@ class SiteSettingsFieldset extends Fieldset
      * @var string
      */
     protected $label = 'Export'; // @translate
-    
+
     public function init(): void
     {
-
         $this->setLabel($this->label);
 
         $this->add([
@@ -27,12 +25,12 @@ class SiteSettingsFieldset extends Fieldset
                     'value_options' => [
                         'no' => 'No', // @translate
                         'before' => 'Before', // @translate
-                        'after' => 'After' // @translate
+                        'after' => 'After', // @translate
                     ],
                 ],
                 'attributes' => [
                     'id' => 'export_public_button',
-                    'value' => 'no'
+                    'value' => 'no',
                 ],
             ]);
 
@@ -42,7 +40,7 @@ class SiteSettingsFieldset extends Fieldset
         foreach ($formats as $format) {
             $valueOptions[] = [
                 'label' => $format,
-                'value' => $format 
+                'value' => $format,
             ];
         }
 

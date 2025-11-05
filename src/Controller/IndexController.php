@@ -122,8 +122,7 @@ class IndexController extends AbstractActionController
         $request = $this->getRequest();
         $queryParams = $request->getQuery();
 
-        if ($queryParams['file_name'])
-        {
+        if ($queryParams['file_name']) {
             $store = $this->serviceLocator->get('Omeka\File\Store');
 
             $store->delete('Export/' . $queryParams['file_name']);
