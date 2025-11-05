@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-01 08:40+0000\n"
+"POT-Creation-Date: 2025-11-05 11:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,72 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: view/export/index/index.phtml:7
+#: view/export/export-button.phtml:9 view/export/index/export.phtml:11
+msgid "Start download"
+msgstr ""
+
+#: view/export/index/export.phtml:7
 msgid "Export Settings"
 msgstr ""
 
-#: view/export/index/index.phtml:10
+#: view/export/list/list.phtml:7
+msgid "Download list"
+msgstr ""
+
+#: view/export/list/list.phtml:9
+msgid "Previous downloads from tasks"
+msgstr ""
+
+#: view/export/list/list.phtml:11
+msgid "No downloads yet"
+msgstr ""
+
+#: view/export/list/list.phtml:17
+msgid "Actions"
+msgstr ""
+
+#: config/module.config.php:104
 msgid "Download"
 msgstr ""
 
-#: src/Form/ImportForm.php:23
+#: config/module.config.php:110
+msgid "Download List"
+msgstr ""
+
+#: src/Exporter.php:285
+#, php-format
+msgid "Accessed on: %s"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:24
+msgid "Export button placement"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:27
+msgid "Before"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:28
+msgid "After"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:52
+msgid "Export formats enabled for this site"
+msgstr ""
+
+#: src/Form/ExportButtonForm.php:29 src/Form/ImportForm.php:42
+msgid "Select format to export"
+msgstr ""
+
+#: src/Form/ImportForm.php:28
 msgid "Select item set to export"
+msgstr ""
+
+#: src/Controller/Site/IndexController.php:62
+msgid "In config file: no export_formats found."
+msgstr ""
+
+#: src/Controller/IndexController.php:36 src/Controller/IndexController.php:106
+#, php-format
+msgid "Export started in %sjob %s%s"
 msgstr ""
