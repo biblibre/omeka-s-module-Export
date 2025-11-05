@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 14:41+0100\n"
+"POT-Creation-Date: 2025-11-05 17:22+0100\n"
 "PO-Revision-Date: 2025-11-05 12:38+0000\n"
 "Last-Translator: Abel Boilevin, 2025\n"
 "Language-Team: French (https://app.transifex.com/biblibre-/teams/298658/fr/)\n"
@@ -30,16 +30,16 @@ msgid "Export Settings"
 msgstr "Paramètres de l'export"
 
 #: view/export/list/list.phtml:7
-msgid "Download list"
-msgstr "Liste des téléchargements"
+msgid "Export list"
+msgstr "Liste des exports"
 
 #: view/export/list/list.phtml:9
-msgid "Previous downloads from tasks"
-msgstr "Téléchargements effectués depuis tâches"
+msgid "Previous exports from tasks"
+msgstr "Exports passés lancés depuis des tâches"
 
 #: view/export/list/list.phtml:11
-msgid "No downloads yet"
-msgstr "Pas encore de téléchargements"
+msgid "No exports yet"
+msgstr "Pas encore d'exports"
 
 #: view/export/list/list.phtml:17
 msgid "Actions"
@@ -50,8 +50,8 @@ msgid "Download"
 msgstr "Téléchargement"
 
 #: config/module.config.php:110
-msgid "Download List"
-msgstr "Liste de téléchargements"
+msgid "Export List"
+msgstr "Liste des exports"
 
 #: src/Exporter.php:285
 #, php-format
