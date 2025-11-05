@@ -56,22 +56,13 @@ class IndexController extends AbstractActionController
             }
             fclose($fileTemp);
 
-            // get format extension
-            $config = $this->serviceLocator->get('Config');
-            if (empty($config['export_formats'])) {
-                throw new ConfigException('In config file: no export_formats found.'); // @translate
-            }
-
-            if (empty($config['export_formats'][$postParams['format_name']])) {
-                $file_extension = "";
-            } else {
-                $file_extension = $config['export_formats'][$postParams['format_name']];
-            }
+            $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][0]; // extension
+            $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']][1]; // MIME
 
             $response = $this->getResponse();
             $response->setContent($rows);
-            $response->getHeaders()->addHeaderLine('Content-type', 'text/' . strtolower($postParams['format_name']));
-            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export' . $file_extension . '"');
+            $response->getHeaders()->addHeaderLine('Content-type', $fileMime);
+            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export' . $fileExtension . '"');
 
             return $response;
         } else {
