@@ -89,11 +89,12 @@ class IndexController extends AbstractActionController
 
             $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['extension'];
             $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['mime'];
+            $now = date("Y-m-d_H-i-s");
 
             $response = $this->getResponse();
             $response->setContent($rows);
             $response->getHeaders()->addHeaderLine('Content-type', $fileMime);
-            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export' . $fileExtension . '"');
+            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export_' . $now . $fileExtension . '"');
 
             return $response;
         } else {

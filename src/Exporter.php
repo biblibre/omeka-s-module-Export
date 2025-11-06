@@ -30,7 +30,7 @@ class Exporter
         $items = [];
         $itemsQueryResult = $api->search($type, ['id' => $query])->getContent();
         if (count($itemsQueryResult) < 1) {
-            throw new NotFoundException(sprintf('No item with id %s found', $query));
+            throw new NotFoundException(sprintf('No resource with id %s found', $query));
         } // @ translate
         else {
             $items[] = $itemsQueryResult[0];
