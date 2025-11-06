@@ -8,6 +8,9 @@ return [
         ],
     ],
     'form_elements' => [
+        'invokables' => [
+            Form\Element\OptionalMultiCheckbox::class => Form\Element\OptionalMultiCheckbox::class,
+        ],
         'factories' => [
             'Export\Form\ImportForm' => Service\Form\ImportFormFactory::class,
             'Export\Form\ExportButtonForm' => Service\Form\ExportButtonFormFactory::class,

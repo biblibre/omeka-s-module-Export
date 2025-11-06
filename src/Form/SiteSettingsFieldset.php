@@ -4,6 +4,7 @@ namespace Export\Form;
 
 use Laminas\Form\Element;
 use Laminas\Form\Fieldset;
+use Export\Form\Element\OptionalMultiCheckbox;
 
 class SiteSettingsFieldset extends Fieldset
 {
@@ -46,7 +47,7 @@ class SiteSettingsFieldset extends Fieldset
 
         $this->add([
                 'name' => 'export_enabled_formats',
-                'type' => Element\MultiCheckbox::class,
+                'type' => OptionalMultiCheckbox::class,
                 'options' => [
                     'element_group' => 'export',
                     'label' => 'Export formats enabled for this site', // @translate
@@ -56,15 +57,5 @@ class SiteSettingsFieldset extends Fieldset
                     'id' => 'export_enabled_formats',
                 ],
             ]);
-    }
-
-    public function getInputFilterSpecification()
-    {
-        return [
-            'export_enabled_formats' => [
-                'required' => false,     // not required
-                'allow_empty' => true,   // allow empty array / no checkboxes checked
-            ],
-        ];
     }
 }
