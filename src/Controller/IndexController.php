@@ -1,7 +1,8 @@
 <?php
+
 namespace Export\Controller;
 
-use Export\Form\ImportForm;
+use Export\Form\ExportItemSetForm;
 use Export\Job\ExportJob;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
@@ -18,10 +19,10 @@ class IndexController extends AbstractActionController
         $this->serviceLocator = $serviceLocator;
     }
 
-    public function exportAction()
+    public function exportItemSetAction()
     {
         $view = new ViewModel;
-        $form = $this->getForm(ImportForm::class);
+        $form = $this->getForm(ExportItemSetForm::class);
         $view->form = $form;
         if ($this->getRequest()->isPost()) {
             $form->setData($this->params()->fromPost());
@@ -30,12 +31,15 @@ class IndexController extends AbstractActionController
 
                 $args['query'] = ['item_set_id' => $formData['item_set']];
                 $args['format_name'] = $formData['format_name'];
+                $args['resource_type'] = 'items';
+
                 $this->sendJob($args);
 
                 $message = new Message(
                     'Export started in %sjob %s%s', // @translate
-                    sprintf('<a href="%s">', htmlspecialchars($this->getJobUrl(),
-                )),
+                    sprintf('<a href="%s">', htmlspecialchars(
+                        $this->getJobUrl(),
+                    )),
                     $this->getJobId(),
                     '</a>'
                 );
@@ -43,7 +47,7 @@ class IndexController extends AbstractActionController
                 $message->setEscapeHtml(false);
                 $this->messenger()->addSuccess($message);
 
-                return $this->redirect()->toRoute(null, [], [], true);
+                return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
             } else {
                 $this->messenger()->addFormErrors($form);
             }
@@ -105,12 +109,20 @@ class IndexController extends AbstractActionController
             $args = $queryParams->toArray();
             unset($args['page']);
 
-            $this->sendJob(['query' => $args, 'format_name' => $postParams['format_name']]);
+            $controller = $postParams['controller'];
+            $controllerMapping = [
+            'Omeka\Controller\Admin\ItemSet' => 'item_sets',
+            'Omeka\Controller\Admin\Item' => 'items',
+            'Omeka\Controller\Admin\Media' => 'media',
+        ];
+
+            $this->sendJob(['query' => $args, 'resource_type' => $controllerMapping[$controller], 'format_name' => $postParams['format_name']]);
 
             $message = new Message(
                 'Export started in %sjob %s%s', // @translate
-                sprintf('<a href="%s">', htmlspecialchars($this->getJobUrl(),
-            )),
+                sprintf('<a href="%s">', htmlspecialchars(
+                    $this->getJobUrl(),
+                )),
                 $this->getJobId(),
                 '</a>'
             );
@@ -140,10 +152,10 @@ class IndexController extends AbstractActionController
         $job = $this->jobDispatcher()->dispatch(ExportJob::class, $args);
 
         $jobUrl = $this->url()->fromRoute('admin/id', [
-                    'controller' => 'job',
-                    'action' => 'show',
-                    'id' => $job->getId(),
-                ]);
+            'controller' => 'job',
+            'action' => 'show',
+            'id' => $job->getId(),
+        ]);
 
         $this->setJobId($job->getId());
         $this->setJobUrl($jobUrl);

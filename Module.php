@@ -6,9 +6,6 @@ use Export\Form\SiteSettingsFieldset;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Module\AbstractModule;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Controller\AbstractController;
-use Export\Form\ConfigForm;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 
 class Module extends AbstractModule
 {
@@ -48,61 +45,42 @@ class Module extends AbstractModule
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
-        $sharedEventManager->attach(
-            'Omeka\Controller\Admin\Item',
-            'view.show.sidebar',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Admin\Item',
-            'view.browse.before',
-            [$this, 'echoExportAdminLink']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Admin\Item',
-            'view.browse.before',
-            [$this, 'addAdminExportJs']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Admin\ItemSet',
-            'view.show.sidebar',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Admin\Media',
-            'view.show.sidebar',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Item',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Media',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\ItemSet',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Item',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Media',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\ItemSet',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
+        $controllers = ['ItemSet', 'Item', 'Media'];
+
+        foreach ($controllers as $controller) {
+
+            // Browse exports
+            $adminController = "Omeka\Controller\Admin\\" . $controller;
+            $sharedEventManager->attach(
+                $adminController,
+                'view.browse.before',
+                [$this, 'echoExportAdminLink']
+            );
+            $sharedEventManager->attach(
+                $adminController,
+                'view.browse.before',
+                [$this, 'addAdminExportJs']
+            );
+            // Sidebar resource exports
+            $sharedEventManager->attach(
+                $adminController,
+                'view.show.sidebar',
+                [$this, 'echoExportButtonHtml']
+            );
+            // Site resource exports
+            $siteController = "Omeka\Controller\Site\\" . $controller;
+            $sharedEventManager->attach(
+                $siteController,
+                'view.show.before',
+                [$this, 'echoExportButtonHtml']
+            );
+            $sharedEventManager->attach(
+                $siteController,
+                'view.show.after',
+                [$this, 'echoExportButtonHtml']
+            );
+        }
+
         $sharedEventManager->attach(
             \Omeka\Form\SiteSettingsForm::class,
             'form.add_elements',

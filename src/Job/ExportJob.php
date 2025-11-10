@@ -21,8 +21,9 @@ class ExportJob extends AbstractJob
         $filename = tempnam(sys_get_temp_dir(), 'omekas_export');
         $fileTemp = fopen($filename, 'w');
         $exporter->setFileHandle($fileTemp);
+        $resourceType = $this->getArg('resource_type');
 
-        $exporter->exportItemsQuery($this->getArg('query'), $this->getArg('format_name'));
+        $exporter->exportResourcesByQuery($this->getArg('query'), $resourceType, $this->getArg('format_name'));
 
         fclose($fileTemp);
 

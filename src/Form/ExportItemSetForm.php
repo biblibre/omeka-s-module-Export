@@ -4,7 +4,7 @@ namespace Export\Form;
 use Omeka\Form\Element\ItemSetSelect;
 use Laminas\Form\Form;
 
-class ImportForm extends Form
+class ExportItemSetForm extends Form
 {
     /**
      * @var array[string]
@@ -13,8 +13,6 @@ class ImportForm extends Form
 
     public function init()
     {
-        //$this->setAttribute('action', 'export/job');
-        //$this->setAttribute('method', 'post');
         $this->add([
                     'name' => 'item_set',
                     'type' => ItemSetSelect::class,

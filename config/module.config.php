@@ -12,7 +12,7 @@ return [
             Form\Element\OptionalMultiCheckbox::class => Form\Element\OptionalMultiCheckbox::class,
         ],
         'factories' => [
-            'Export\Form\ImportForm' => Service\Form\ImportFormFactory::class,
+            'Export\Form\ExportItemSetForm' => Service\Form\ExportItemSetFormFactory::class,
             'Export\Form\ExportButtonForm' => Service\Form\ExportButtonFormFactory::class,
         ],
     ],
@@ -32,11 +32,11 @@ return [
                     'export' => [
                         'type' => 'Literal',
                         'options' => [
-                            'route' => '/export',
+                            'route' => '/export-item-set',
                             'defaults' => [
                                 '__NAMESPACE__' => 'Export\Controller',
                                 'controller' => 'Index',
-                                'action' => 'export',
+                                'action' => 'exportItemSet',
                             ],
                         ],
                         'may_terminate' => true,

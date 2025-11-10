@@ -20,12 +20,12 @@ class ExportButton extends AbstractHelper
         $url = null;
         $formOptions = ["admin" => $admin];
 
-        if($browsePage) {
+        if ($browsePage) {
             $formOptions["browse_page"] = true;
         }
 
         $form = $this->application->getServiceManager()->get('FormElementManager')->get(ExportButtonForm::class, $formOptions);
-        
+
         if ($admin) {
             $url = $this->getView()->url('admin/export/download', [], ['query' => $query]);
         } else {

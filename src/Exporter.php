@@ -22,21 +22,21 @@ class Exporter
         $this->application = $application;
     }
 
-    public function downloadOne($query, $format = 'CSV', $type = 'items')
+    public function downloadOne($query, $format, $type)
     {
         $services = $this->application->getServiceManager();
         $api = $services->get('Omeka\ApiManager');
 
-        $items = [];
-        $itemsQueryResult = $api->search($type, ['id' => $query])->getContent();
-        if (count($itemsQueryResult) < 1) {
+        $resource = [];
+        $resourcesQueryResult = $api->search($type, ['id' => $query])->getContent();
+        if (count($resourcesQueryResult) < 1) {
             throw new NotFoundException(sprintf('No resource with id %s found', $query));
         } // @ translate
         else {
-            $items[] = $itemsQueryResult[0];
+            $resources[] = $resourcesQueryResult[0];
         }
 
-        $this->transform($items, $format);
+        $this->transform($resources, $format);
     }
 
     public function downloadBatch($query, $format, $resourceType)
@@ -47,46 +47,31 @@ class Exporter
         $resourceIds = $query;
         foreach ($resourceIds as $resourceId) {
             $resources[] = $api->search($resourceType, ['id' => $resourceId])->getContent()[0];
-        }    
+        }
 
         $this->transform($resources, $format);
     }
 
-    public function exportItemSet($query, $format = 'CSV')
+    public function exportResourcesByQuery($query, $resourceType, $format)
     {
         $services = $this->application->getServiceManager();
         $api = $services->get('Omeka\ApiManager');
 
-        $itemSetId = $query;
-        $items = $api->search('items', ['item_set_id' => $itemSetId])->getContent();
+        $resources = $api->search($resourceType, $query)->getContent();
 
-        if (count($items) < 1) {
-            throw new NotFoundException(sprintf('No item set with id %s found', $itemSetId));
-        } // @ translate
-
-        $this->transform($items, $format);
+        $this->transform($resources, $format);
     }
 
-    public function exportItemsQuery($query, $format = 'CSV')
-    {
-        $services = $this->application->getServiceManager();
-        $api = $services->get('Omeka\ApiManager');
-
-        $items = $api->search('items', $query)->getContent();
-
-        $this->transform($items, $format);
-    }
-
-    protected function transform($items, $format = 'CSV')
+    protected function transform($resources, $format)
     {
         if ($format == 'CSV') { // @TODO : make this better than strings
-            $this->transformToCSV($items);
+            $this->transformToCSV($resources);
         } elseif ($format == 'JSON') {
-            $this->transformToJSON($items);
+            $this->transformToJSON($resources);
         } elseif ($format == 'TXT') {
-            $this->transformToTXT($items);
+            $this->transformToTXT($resources);
         } elseif ($format == 'BibTex') {
-            $this->transformToBibTex($items);
+            $this->transformToBibTex($resources);
         } else {
             fwrite($this->getFileHandle(), sprintf('Error: unknown file format : "%s."', $format));
         }
@@ -533,13 +518,13 @@ class Exporter
         return '';
     }
 
-    protected function transformToCSV($items)
+    protected function transformToCSV($resource)
     {
-        $items = $this->formatData($items);
+        $resource = $this->formatData($resource);
         $itemMedia = [];
-        foreach ($items as $item) {
-            if (array_key_exists('o:media', $item) && !empty($item['o:media'])) {
-                $mediaIds = $item['o:media'];
+        foreach ($resource as $resource) {
+            if (array_key_exists('o:media', $resource) && !empty($resource['o:media'])) {
+                $mediaIds = $resource['o:media'];
                 $mediaOut = "";
                 $mediaJson = "";
                 foreach ($mediaIds as $mediaId) {
@@ -548,15 +533,15 @@ class Exporter
                     foreach ($media as $medium) {
                         $mediaOut = $mediaOut . $medium['o:filename'] . ";";
                         $mediaJson = $mediaJson . json_encode($medium) . ";";
-                        $item['media:link'] = $mediaOut;
-                        $item['media:full'] = $mediaJson;
+                        $resource['media:link'] = $mediaOut;
+                        $resource['media:full'] = $mediaJson;
                     }
                 }
             } else {
-                $item['media:link'] = "";
-                $item['media:full'] = "";
+                $resource['media:link'] = "";
+                $resource['media:full'] = "";
             }
-            array_push($itemMedia, $item);
+            array_push($itemMedia, $resource);
         }
 
         $properties = $this->getData("", 'term', 'properties');
@@ -626,8 +611,8 @@ class Exporter
         $api = $services->get('Omeka\ApiManager');
 
         $query[$field] = $criteria;
-        $items = $api->search($type, $query)->getContent();
-        $out = $this->formatData($items);
+        $resources = $api->search($type, $query)->getContent();
+        $out = $this->formatData($resources);
 
         return $out;
     }
@@ -635,8 +620,8 @@ class Exporter
     protected function formatData($rawData)
     {
         $arr = json_encode($rawData, true);
-        $items = json_decode($arr, true);
-        return $items ;
+        $resources = json_decode($arr, true);
+        return $resources ;
     }
 
     public function setFileHandle($fileHandle)

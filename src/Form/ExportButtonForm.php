@@ -13,7 +13,7 @@ class ExportButtonForm extends Form
     /**
      * @var bool
      */
-    public $browsePage = false;    
+    public $browsePage = false;
 
     public function init()
     {
@@ -41,7 +41,7 @@ class ExportButtonForm extends Form
         ]);
 
         if ($this->browsePage) {
-        $this->get('format_name')->setOption('info', 'Check the resources you want to export. If none are selected, an export job will be performed to export all resources.'); // @translate
-    }
+            $this->get('format_name')->setOption('info', 'Check the resources you want to export. If none are selected, an export job will be performed to export all resources.'); // @translate
+        }
     }
 }
