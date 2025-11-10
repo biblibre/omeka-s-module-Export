@@ -1,4 +1,5 @@
 <?php
+
 namespace Export;
 
 use Export\Form\SiteSettingsFieldset;
@@ -7,6 +8,7 @@ use Omeka\Module\AbstractModule;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Mvc\Controller\AbstractController;
 use Export\Form\ConfigForm;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 
 class Module extends AbstractModule
 {
@@ -36,10 +38,9 @@ class Module extends AbstractModule
 
             // not guaranteed to work! Pemission issues, etc. but it is not critical
             // and will only issue a warning
-            if ( !is_dir( $storePath . $oldDir ) ) {
-                mkdir( $storePath . $newDir );       
-            }
-            else {
+            if (!is_dir($storePath . $oldDir)) {
+                mkdir($storePath . $newDir);
+            } else {
                 rename($storePath . $oldDir, $storePath . $newDir);
             }
         }
@@ -51,6 +52,16 @@ class Module extends AbstractModule
             'Omeka\Controller\Admin\Item',
             'view.show.sidebar',
             [$this, 'echoExportButtonHtml']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.browse.before',
+            [$this, 'echoExportAdminLink']
+        );
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Item',
+            'view.browse.before',
+            [$this, 'addAdminExportJs']
         );
         $sharedEventManager->attach(
             'Omeka\Controller\Admin\ItemSet',
@@ -109,23 +120,45 @@ class Module extends AbstractModule
             'id' => $params['id'],
         ];
 
-        if ($params['controller'] == 'Omeka\Controller\Admin\Item' ||
+        if (
+            $params['controller'] == 'Omeka\Controller\Admin\Item' ||
             $params['controller'] == 'Omeka\Controller\Admin\ItemSet' ||
-            $params['controller'] == 'Omeka\Controller\Admin\Media') {
+            $params['controller'] == 'Omeka\Controller\Admin\Media'
+        ) {
             $fromAdmin = true;
         }
 
         $publicExportButtonPosition = $this->getServiceLocator()->get('Omeka\Settings\Site')->get('export_public_button', 'no');
 
-        if ($event->getName() == 'view.show.after' && $publicExportButtonPosition == 'after'
-        || $event->getName() == 'view.show.before' && $publicExportButtonPosition == 'before'
-        || $event->getName() == 'view.show.sidebar')
-        {
+        if (
+            $event->getName() == 'view.show.after' && $publicExportButtonPosition == 'after'
+            || $event->getName() == 'view.show.before' && $publicExportButtonPosition == 'before'
+            || $event->getName() == 'view.show.sidebar'
+        ) {
             $view = $event->getTarget();
             echo $view->exportButton($fromAdmin, $params['controller'], $query);
         }
-
     }
+
+    public function echoExportAdminLink($event)
+    {
+        $mvcEvent = $this->getServiceLocator()->get('Application')->getMvcEvent();
+        $params = $mvcEvent->getRouteMatch()->getParams();
+        $request = $mvcEvent->getRequest();
+
+        $query = $request->getQuery()->toArray();
+        $view = $event->getTarget();
+
+        echo $view->exportButton(true, $params['controller'], $query, true);
+    }
+
+    public function addAdminExportJs($event): void
+    {
+        $view = $event->getTarget();
+        $view->headScript()->appendFile($view->assetUrl('js/export-admin.js', 'Export'), 'text/javascript', ['defer' => 'defer']);
+        $view->headLink()->appendStylesheet($view->assetUrl('css/export.css', 'Export'));
+    }
+
     public function handleSiteSettings($event)
     {
         $services = $this->getServiceLocator();

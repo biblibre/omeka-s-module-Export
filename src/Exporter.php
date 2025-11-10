@@ -39,6 +39,19 @@ class Exporter
         $this->transform($items, $format);
     }
 
+    public function downloadBatch($query, $format, $resourceType)
+    {
+        $services = $this->application->getServiceManager();
+        $api = $services->get('Omeka\ApiManager');
+
+        $resourceIds = $query;
+        foreach ($resourceIds as $resourceId) {
+            $resources[] = $api->search($resourceType, ['id' => $resourceId])->getContent()[0];
+        }    
+
+        $this->transform($resources, $format);
+    }
+
     public function exportItemSet($query, $format = 'CSV')
     {
         $services = $this->application->getServiceManager();
@@ -113,31 +126,41 @@ class Exporter
         }
 
         $resources = $this->formatData($resources);
+        $bibtexEntries = [];
 
         foreach ($resources as $resource) {
-            // may be changed in the future
             $typeStr = '@misc';
-
             $bibtexStr = $typeStr . ' {' . PHP_EOL;
+
             foreach ($this->bibtexConfig as $bibtexPropertyName => $bibtexPropertyConfig) {
-                if (array_key_exists(0, $bibtexPropertyConfig)) {
+                $propertyHandled = false;
+
+                if (is_array($bibtexPropertyConfig) && array_key_exists(0, $bibtexPropertyConfig)) {
                     foreach ($bibtexPropertyConfig as $bibtexPropertyConfigElement) {
                         $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfigElement, $resource);
                         if (strlen($textToAdd) > 0) {
-                            $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                            $bibtexStr .= $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                            $propertyHandled = true;
                             break;
                         }
                     }
                 }
-                $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfig, $resource);
-                if (strlen($textToAdd) > 0) {
-                    $bibtexStr = $bibtexStr . $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+
+                if (!$propertyHandled) {
+                    $textToAdd = $this->transformToBibtextReadMapping($bibtexPropertyConfig, $resource);
+                    if (strlen($textToAdd) > 0) {
+                        $bibtexStr .= $this->transformToBibtexOpenValueBrackets($bibtexPropertyName) . $textToAdd . ' }' . PHP_EOL;
+                    }
                 }
             }
-            $bibtexStr = $bibtexStr . '}' . PHP_EOL;
+            $bibtexStr .= '}' . PHP_EOL;
+            $bibtexEntries[] = $bibtexStr;
         }
 
-        fwrite($this->getFileHandle(), $bibtexStr);
+        $fileHandle = $this->getFileHandle();
+        if ($fileHandle) {
+            fwrite($fileHandle, implode('', $bibtexEntries));
+        }
     }
 
     // reads a 'mapping' object from the json config

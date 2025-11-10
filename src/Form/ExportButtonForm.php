@@ -10,8 +10,14 @@ class ExportButtonForm extends Form
      */
     public $availableFormats = [];
 
+    /**
+     * @var bool
+     */
+    public $browsePage = false;    
+
     public function init()
     {
+        $this->setAttribute('id', 'export-button-form');
         $this->availableFormats = array_combine($this->availableFormats, $this->availableFormats);
 
         $this->add([
@@ -33,5 +39,9 @@ class ExportButtonForm extends Form
                         'required' => true,
                     ],
         ]);
+
+        if ($this->browsePage) {
+        $this->get('format_name')->setOption('info', 'Check the resources you want to export. If none are selected, an export job will be performed to export all resources.'); // @translate
+    }
     }
 }

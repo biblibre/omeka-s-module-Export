@@ -59,7 +59,7 @@ class IndexController extends AbstractActionController
         $postParams = $request->getPost();
         $queryParams = $request->getQuery();
 
-        if ($queryParams['id']) {
+        if ($postParams['resource_ids'] || $queryParams['id']) {
             $fileTemp = tmpfile();
             $exporter->setFileHandle($fileTemp);
 
@@ -78,7 +78,11 @@ class IndexController extends AbstractActionController
                     $resource_type = 'item_sets';
                 }
             }
-            $exporter->downloadOne($queryParams['id'], $postParams['format_name'], $resource_type);
+            if ($postParams['resource_ids']) {
+                $exporter->downloadBatch($postParams['resource_ids'], $postParams['format_name'], $resource_type);
+            } else {
+                $exporter->downloadOne($queryParams['id'], $postParams['format_name'], $resource_type);
+            }
 
             fseek($fileTemp, 0);
             $rows = '';
@@ -101,7 +105,7 @@ class IndexController extends AbstractActionController
             $args = $queryParams->toArray();
             unset($args['page']);
 
-            $this->sendJob(['query' => $args]);
+            $this->sendJob(['query' => $args, 'format_name' => $postParams['format_name']]);
 
             $message = new Message(
                 'Export started in %sjob %s%s', // @translate

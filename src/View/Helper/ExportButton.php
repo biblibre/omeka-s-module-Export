@@ -15,19 +15,22 @@ class ExportButton extends AbstractHelper
         $this->application = $application;
     }
 
-    public function __invoke(bool $admin, string $controller, array $query)
+    public function __invoke(bool $admin, string $controller, array $query, bool $browsePage = false)
     {
         $url = null;
+        $formOptions = ["admin" => $admin];
 
-        $form = null;
+        if($browsePage) {
+            $formOptions["browse_page"] = true;
+        }
 
+        $form = $this->application->getServiceManager()->get('FormElementManager')->get(ExportButtonForm::class, $formOptions);
+        
         if ($admin) {
             $url = $this->getView()->url('admin/export/download', [], ['query' => $query]);
-            $form = $this->application->getServiceManager()->get('FormElementManager')->get(ExportButtonForm::class, ["admin" => true]);
         } else {
             $siteSlug = $this->getView()->getHelperPluginManager()->get('currentSite')()->slug();
             $url = $this->getView()->url('site/export', ['site-slug' => $siteSlug], ['query' => $query]);
-            $form = $this->application->getServiceManager()->get('FormElementManager')->get(ExportButtonForm::class, ["admin" => false]);
         }
 
         if (empty($form->availableFormats)) {

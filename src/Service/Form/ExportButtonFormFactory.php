@@ -18,6 +18,11 @@ class ExportButtonFormFactory implements FactoryInterface
             $form->availableFormats = $settings->get('export_enabled_formats', []);
         }
 
+        if (isset($options["browse_page"])) {
+            $form->setAttribute('class', 'export-browse');
+            $form->browsePage = true;
+        }
+
         return $form;
     }
 }
