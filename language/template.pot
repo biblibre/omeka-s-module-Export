@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-01 08:40+0000\n"
+"POT-Creation-Date: 2025-11-10 16:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,74 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: view/export/index/index.phtml:7
-msgid "Export Settings"
+#: view/export/index/export-item-set.phtml:7
+msgid "Export items from an item set"
 msgstr ""
 
-#: view/export/index/index.phtml:10
+#: view/export/index/export-item-set.phtml:11
+msgid "Start export"
+msgstr ""
+
+#: view/export/list/list.phtml:7
+msgid "Export list"
+msgstr ""
+
+#: view/export/list/list.phtml:9
+msgid "Previous exports from jobs"
+msgstr ""
+
+#: view/export/list/list.phtml:11
+msgid "No exports yet"
+msgstr ""
+
+#: view/export/list/list.phtml:17
+msgid "Actions"
+msgstr ""
+
+#: src/Exporter.php:293
+#, php-format
+msgid "Accessed on: %s"
+msgstr ""
+
+#: src/Controller/IndexController.php:39 src/Controller/IndexController.php:122
+#, php-format
+msgid "Export started in %sjob %s%s"
+msgstr ""
+
+#: src/Form/ExportItemSetForm.php:26
+msgid "Select item set to export"
+msgstr ""
+
+#: src/Form/ExportItemSetForm.php:40 src/Form/ExportButtonForm.php:35
+msgid "Select format to export"
+msgstr ""
+
+#: src/Form/ExportButtonForm.php:44
+msgid ""
+"Check the resources you want to export. If none are selected, an export job "
+"will be performed to export all resources."
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:25
+msgid "Public export button placement"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:28
+msgid "Before the resource"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:29
+msgid "After the resource"
+msgstr ""
+
+#: src/Form/SiteSettingsFieldset.php:53
+msgid "Export formats enabled for this site"
+msgstr ""
+
+#: config/module.config.php:107
 msgid "Download"
 msgstr ""
 
-#: src/Form/ImportForm.php:23
-msgid "Select item set to export"
+#: config/module.config.php:113
+msgid "Export List"
 msgstr ""

@@ -4,6 +4,7 @@ namespace Export\View\Helper;
 
 use Laminas\View\Helper\AbstractHelper;
 use Laminas\Mvc\Application;
+use Export\Form\ExportButtonForm;
 
 class ExportButton extends AbstractHelper
 {
@@ -14,33 +15,31 @@ class ExportButton extends AbstractHelper
         $this->application = $application;
     }
 
-    public function __invoke()
+    public function __invoke(bool $admin, string $controller, array $query, bool $browsePage = false)
     {
-        $mvcEvent = $this->application->getMvcEvent();
-        $request = $mvcEvent->getRequest();
-        $routeMatch = $mvcEvent->getRouteMatch();
+        $url = null;
+        $formOptions = ["admin" => $admin];
 
-        $route = $routeMatch->getMatchedRouteName();
-        $params = $routeMatch->getParams();
-
-        $view = $this->getView();
-        $onResultPage = true;
-
-        if ($route === 'admin/id' && ($params['controller'] === 'Omeka\Controller\Admin\Item' && $params['action'] === 'show')) {
-            $query = [
-            'id' => $params['id'],
-           ];
-            $onResultPage = false;
-        } else {
-            $query = $request->getQuery()->toArray();
+        if ($browsePage) {
+            $formOptions["browse_page"] = true;
         }
 
-        $url = $view->url('admin/export/download', [], ['query' => $query]);
+        $form = $this->application->getServiceManager()->get('FormElementManager')->get(ExportButtonForm::class, $formOptions);
 
-        if ($onResultPage) {
-            return '<button form="batch-form" formaction="' . $url . '">Export CSV</button>';
+        if ($admin) {
+            $url = $this->getView()->url('admin/export/download', [], ['query' => $query]);
         } else {
-            return '<a href="' . $url . '"><button>Export CSV</button></a>';
+            $siteSlug = $this->getView()->getHelperPluginManager()->get('currentSite')()->slug();
+            $url = $this->getView()->url('site/export', ['site-slug' => $siteSlug], ['query' => $query]);
         }
+
+        if (empty($form->availableFormats)) {
+            return '';
+        }
+
+        $form->setAttribute('action', $url);
+        $form->get('controller')->setValue($controller);
+
+        return $this->getView()->partial('export/export-button', ['form' => $form]);
     }
 }

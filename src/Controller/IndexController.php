@@ -1,7 +1,8 @@
 <?php
+
 namespace Export\Controller;
 
-use Export\Form\ImportForm;
+use Export\Form\ExportItemSetForm;
 use Export\Job\ExportJob;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
@@ -18,10 +19,10 @@ class IndexController extends AbstractActionController
         $this->serviceLocator = $serviceLocator;
     }
 
-    public function exportAction()
+    public function exportItemSetAction()
     {
         $view = new ViewModel;
-        $form = $this->getForm(ImportForm::class);
+        $form = $this->getForm(ExportItemSetForm::class);
         $view->form = $form;
         if ($this->getRequest()->isPost()) {
             $form->setData($this->params()->fromPost());
@@ -29,12 +30,16 @@ class IndexController extends AbstractActionController
                 $formData = $form->getData();
 
                 $args['query'] = ['item_set_id' => $formData['item_set']];
+                $args['format_name'] = $formData['format_name'];
+                $args['resource_type'] = 'items';
+
                 $this->sendJob($args);
 
                 $message = new Message(
                     'Export started in %sjob %s%s', // @translate
-                    sprintf('<a href="%s">', htmlspecialchars($this->getJobUrl(),
-                )),
+                    sprintf('<a href="%s">', htmlspecialchars(
+                        $this->getJobUrl(),
+                    )),
                     $this->getJobId(),
                     '</a>'
                 );
@@ -42,7 +47,7 @@ class IndexController extends AbstractActionController
                 $message->setEscapeHtml(false);
                 $this->messenger()->addSuccess($message);
 
-                return $this->redirect()->toRoute(null, [], [], true);
+                return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
             } else {
                 $this->messenger()->addFormErrors($form);
             }
@@ -59,37 +64,65 @@ class IndexController extends AbstractActionController
         $queryParams = $request->getQuery();
 
         if ($postParams['resource_ids'] || $queryParams['id']) {
-            $csvTemp = tmpfile();
-            $exporter->setFileHandle($csvTemp);
+            $fileTemp = tmpfile();
+            $exporter->setFileHandle($fileTemp);
 
-            if ($postParams['resource_ids']) {
-                $exporter->downloadSelected($postParams['resource_ids']);
+            $resource_type = '';
+            if (empty($postParams['format_name'])) {
+                $postParams['format_name'] = 'CSV';
+            }
+            if (empty($postParams['controller'])) {
+                $resource_type = 'item_sets';
             } else {
-                $exporter->downloadOne($queryParams['id']);
+                if ($postParams['controller'] == 'Omeka\Controller\Admin\Item') {
+                    $resource_type = 'items';
+                } elseif ($postParams['controller'] == 'Omeka\Controller\Admin\Media') {
+                    $resource_type = 'media';
+                } else { // should be 'Omeka\Controller\Admin\ItemSet'
+                    $resource_type = 'item_sets';
+                }
             }
-            fseek($csvTemp, 0);
+            if ($postParams['resource_ids']) {
+                $exporter->downloadBatch($postParams['resource_ids'], $postParams['format_name'], $resource_type);
+            } else {
+                $exporter->downloadOne($queryParams['id'], $postParams['format_name'], $resource_type);
+            }
+
+            fseek($fileTemp, 0);
             $rows = '';
-            while (! feof($csvTemp)) {
-                $rows .= fread($csvTemp, 1024);
+            while (! feof($fileTemp)) {
+                $rows .= fread($fileTemp, 1024);
             }
-            fclose($csvTemp);
+            fclose($fileTemp);
+
+            $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['extension'];
+            $fileMime = \Export\Exporter::IMPLEMENTED_FORMATS[$postParams['format_name']]['mime'];
+            $now = date("Y-m-d_H-i-s");
 
             $response = $this->getResponse();
             $response->setContent($rows);
-            $response->getHeaders()->addHeaderLine('Content-type', 'text/csv');
-            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export.csv"');
+            $response->getHeaders()->addHeaderLine('Content-type', $fileMime);
+            $response->getHeaders()->addHeaderLine('Content-Disposition', 'attachment; filename="omekas_export_' . $now . $fileExtension . '"');
 
             return $response;
         } else {
             $args = $queryParams->toArray();
             unset($args['page']);
 
-            $this->sendJob(['query' => $args]);
+            $controller = $postParams['controller'];
+            $controllerMapping = [
+            'Omeka\Controller\Admin\ItemSet' => 'item_sets',
+            'Omeka\Controller\Admin\Item' => 'items',
+            'Omeka\Controller\Admin\Media' => 'media',
+        ];
+
+            $this->sendJob(['query' => $args, 'resource_type' => $controllerMapping[$controller], 'format_name' => $postParams['format_name']]);
 
             $message = new Message(
                 'Export started in %sjob %s%s', // @translate
-                sprintf('<a href="%s">', htmlspecialchars($this->getJobUrl(),
-            )),
+                sprintf('<a href="%s">', htmlspecialchars(
+                    $this->getJobUrl(),
+                )),
                 $this->getJobId(),
                 '</a>'
             );
@@ -101,15 +134,28 @@ class IndexController extends AbstractActionController
         }
     }
 
+    public function deleteAction()
+    {
+        $request = $this->getRequest();
+        $queryParams = $request->getQuery();
+
+        if ($queryParams['file_name']) {
+            $store = $this->serviceLocator->get('Omeka\File\Store');
+
+            $store->delete('Export/' . $queryParams['file_name']);
+        }
+        return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
+    }
+
     protected function sendJob($args)
     {
         $job = $this->jobDispatcher()->dispatch(ExportJob::class, $args);
 
         $jobUrl = $this->url()->fromRoute('admin/id', [
-                    'controller' => 'job',
-                    'action' => 'show',
-                    'id' => $job->getId(),
-                ]);
+            'controller' => 'job',
+            'action' => 'show',
+            'id' => $job->getId(),
+        ]);
 
         $this->setJobId($job->getId());
         $this->setJobUrl($jobUrl);

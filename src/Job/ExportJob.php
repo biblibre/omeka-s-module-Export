@@ -19,18 +19,21 @@ class ExportJob extends AbstractJob
         $now = date("Y-m-d_H-i-s");
 
         $filename = tempnam(sys_get_temp_dir(), 'omekas_export');
-        $csvTemp = fopen($filename, 'w');
-        $exporter->setFileHandle($csvTemp);
+        $fileTemp = fopen($filename, 'w');
+        $exporter->setFileHandle($fileTemp);
+        $resourceType = $this->getArg('resource_type');
 
-        $exporter->exportQuery($this->getArg('query'));
+        $exporter->exportResourcesByQuery($this->getArg('query'), $resourceType, $this->getArg('format_name'));
 
-        fclose($csvTemp);
+        fclose($fileTemp);
 
-        $store->put($filename, "CSV_Export/omekas_$now.csv");
+        $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$this->getArg('format_name')]['extension'] ?? "";
+
+        $store->put($filename, sprintf("Export/omekas_$now%s", $fileExtension));
 
         unlink($filename);
 
-        $logger->info("Saved in files/CSV_Export/omekas_$now.csv");
+        $logger->info(sprintf("Saved in files/Export/omekas_$now%s", $fileExtension));
         $logger->info('Job ended');
     }
 }

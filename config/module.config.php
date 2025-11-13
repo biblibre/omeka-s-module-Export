@@ -8,8 +8,12 @@ return [
         ],
     ],
     'form_elements' => [
+        'invokables' => [
+            Form\Element\OptionalMultiCheckbox::class => Form\Element\OptionalMultiCheckbox::class,
+        ],
         'factories' => [
-            'Export\Form\ImportForm' => Service\Form\ImportFormFactory::class,
+            'Export\Form\ExportItemSetForm' => Service\Form\ExportItemSetFormFactory::class,
+            'Export\Form\ExportButtonForm' => Service\Form\ExportButtonFormFactory::class,
         ],
     ],
     'controllers' => [
@@ -18,6 +22,7 @@ return [
         ],
         'factories' => [
             'Export\Controller\Index' => Service\Controller\IndexControllerFactory::class,
+            'Export\Controller\Site\Index' => Service\Controller\Site\IndexControllerFactory::class,
         ],
     ],
     'router' => [
@@ -27,11 +32,11 @@ return [
                     'export' => [
                         'type' => 'Literal',
                         'options' => [
-                            'route' => '/export',
+                            'route' => '/export-item-set',
                             'defaults' => [
                                 '__NAMESPACE__' => 'Export\Controller',
                                 'controller' => 'Index',
-                                'action' => 'export',
+                                'action' => 'exportItemSet',
                             ],
                         ],
                         'may_terminate' => true,
@@ -58,6 +63,32 @@ return [
                                     ],
                                 ],
                             ],
+                            'delete' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/delete',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'Export\Controller',
+                                        'controller' => 'Index',
+                                        'action' => 'delete',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'site' => [
+                'child_routes' => [
+                    'export' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route' => '/export',
+                            'defaults' => [
+                                '__NAMESPACE__' => 'Export\Controller\Site',
+                                'controller' => 'Index',
+                                'action' => 'download',
+                            ],
                         ],
                     ],
                 ],
@@ -79,7 +110,7 @@ return [
                         'visible' => false,
                     ],
                     [
-                        'label' => 'Download List', // @translate
+                        'label' => 'Export List', // @translate
                         'route' => 'admin/export/list',
                         'controller' => 'List',
                         'action' => 'list',
