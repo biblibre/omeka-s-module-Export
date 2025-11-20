@@ -6,6 +6,7 @@ use Export\Form\SiteSettingsFieldset;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Module\AbstractModule;
 use Laminas\Mvc\MvcEvent;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 
 class Module extends AbstractModule
 {
@@ -24,7 +25,16 @@ class Module extends AbstractModule
         $acl->allow(null, ['Export\Controller\Site\Index']);
     }
 
-    public function upgrade($oldVersion, $newVersion, \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator)
+    public function install(ServiceLocatorInterface $serviceLocator)
+    {
+        $exportsDir = OMEKA_PATH . '/files/Export';
+
+        if (!file_exists($exportsDir)) {
+            mkdir($exportsDir);
+        }
+    }
+
+    public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
     {
         if (version_compare($oldVersion, '2.0.0', '<')) {
             $store = $serviceLocator->get('Omeka\File\Store');
