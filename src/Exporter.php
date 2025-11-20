@@ -60,6 +60,8 @@ class Exporter
         $resources = $api->search($resourceType, $query)->getContent();
 
         $this->transform($resources, $format);
+
+        return count($resources);
     }
 
     protected function transform($resources, $format)

@@ -23,7 +23,7 @@ class ExportJob extends AbstractJob
         $exporter->setFileHandle($fileTemp);
         $resourceType = $this->getArg('resource_type');
 
-        $exporter->exportResourcesByQuery($this->getArg('query'), $resourceType, $this->getArg('format_name'));
+        $resourcesCount = $exporter->exportResourcesByQuery($this->getArg('query'), $resourceType, $this->getArg('format_name'));
 
         fclose($fileTemp);
 
@@ -33,6 +33,7 @@ class ExportJob extends AbstractJob
 
         unlink($filename);
 
+        $logger->info(sprintf("%d ressources has been exported", $resourcesCount));
         $logger->info(sprintf("Saved in %s/files/Export/omekas_$now%s", OMEKA_PATH, $fileExtension));
         $logger->info('Job ended');
     }
