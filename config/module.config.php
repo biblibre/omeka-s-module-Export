@@ -110,12 +110,20 @@ return [
                         'visible' => false,
                     ],
                     [
+                        'label' => 'Export items from an item set', // @translate
+                        'route' => 'admin/export',
+                        'controller' => 'Index',
+                        'action' => 'ExportItemSet',
+                        'resource' => 'Export\Controller\Index',
+                    ],
+                    [
                         'label' => 'Export List', // @translate
                         'route' => 'admin/export/list',
                         'controller' => 'List',
                         'action' => 'list',
                         'resource' => 'Export\Controller\List',
                     ],
+                    
                 ],
             ],
         ],
