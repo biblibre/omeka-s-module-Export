@@ -7,6 +7,19 @@ return [
             dirname(__DIR__) . '/view',
         ],
     ],
+    'entity_manager' => [
+        'mapping_classes_paths' => [
+            dirname(__DIR__) . '/src/Entity',
+        ],
+        'proxy_paths' => [
+            dirname(__DIR__) . '/data/doctrine-proxies',
+        ],
+    ],
+    'api_adapters' => [
+        'invokables' => [
+            'export_background_exports' => Api\Adapter\BackgroundExportAdapter::class,
+        ],
+    ],
     'form_elements' => [
         'invokables' => [
             Form\Element\OptionalMultiCheckbox::class => Form\Element\OptionalMultiCheckbox::class,
@@ -18,10 +31,10 @@ return [
     ],
     'controllers' => [
         'invokables' => [
-            'Export\Controller\List' => Controller\ListController::class,
+            'Export\Controller\Admin\List' => Controller\Admin\ListController::class,
         ],
         'factories' => [
-            'Export\Controller\Index' => Service\Controller\IndexControllerFactory::class,
+            'Export\Controller\Admin\Index' => Service\Controller\Admin\IndexControllerFactory::class,
             'Export\Controller\Site\Index' => Service\Controller\Site\IndexControllerFactory::class,
         ],
     ],
@@ -32,9 +45,9 @@ return [
                     'export' => [
                         'type' => 'Literal',
                         'options' => [
-                            'route' => '/export-item-set',
+                            'route' => '/export',
                             'defaults' => [
-                                '__NAMESPACE__' => 'Export\Controller',
+                                '__NAMESPACE__' => 'Export\Controller\Admin',
                                 'controller' => 'Index',
                                 'action' => 'exportItemSet',
                             ],
@@ -46,7 +59,7 @@ return [
                                 'options' => [
                                     'route' => '/download',
                                     'defaults' => [
-                                        '__NAMESPACE__' => 'Export\Controller',
+                                        '__NAMESPACE__' => 'Export\Controller\Admin',
                                         'controller' => 'Index',
                                         'action' => 'download',
                                     ],
@@ -57,7 +70,7 @@ return [
                                 'options' => [
                                     'route' => '/list',
                                     'defaults' => [
-                                        '__NAMESPACE__' => 'Export\Controller',
+                                        '__NAMESPACE__' => 'Export\Controller\Admin',
                                         'controller' => 'List',
                                         'action' => 'list',
                                     ],
@@ -68,7 +81,7 @@ return [
                                 'options' => [
                                     'route' => '/delete',
                                     'defaults' => [
-                                        '__NAMESPACE__' => 'Export\Controller',
+                                        '__NAMESPACE__' => 'Export\Controller\Admin',
                                         'controller' => 'Index',
                                         'action' => 'delete',
                                     ],
@@ -101,21 +114,29 @@ return [
             [
                 'label' => 'Export',
                 'route' => 'admin/export',
-                'resource' => 'Export\Controller\Index',
+                'resource' => 'Export\Controller\Admin\Index',
                 'pages' => [
                     [
                         'label' => 'Download', // @translate
                         'route' => 'admin/export/download',
-                        'resource' => 'Export\Controller\Index',
+                        'resource' => 'Export\Controller\Admin\Index',
                         'visible' => false,
+                    ],
+                    [
+                        'label' => 'Export items from an item set', // @translate
+                        'route' => 'admin/export',
+                        'controller' => 'Index',
+                        'action' => 'ExportItemSet',
+                        'resource' => 'Export\Controller\Admin\Index',
                     ],
                     [
                         'label' => 'Export List', // @translate
                         'route' => 'admin/export/list',
                         'controller' => 'List',
                         'action' => 'list',
-                        'resource' => 'Export\Controller\List',
+                        'resource' => 'Export\Controller\Admin\List',
                     ],
+
                 ],
             ],
         ],
@@ -133,6 +154,9 @@ return [
     'view_helpers' => [
         'factories' => [
             'exportButton' => Service\ViewHelper\ExportButtonFactory::class,
+        ],
+        'invokables' => [
+            'exportDetail' => View\Helper\ExportDetail::class,
         ],
     ],
     'service_manager' => [

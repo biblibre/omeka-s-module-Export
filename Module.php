@@ -6,6 +6,7 @@ use Export\Form\SiteSettingsFieldset;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Omeka\Module\AbstractModule;
 use Laminas\Mvc\MvcEvent;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 
 class Module extends AbstractModule
 {
@@ -24,23 +25,92 @@ class Module extends AbstractModule
         $acl->allow(null, ['Export\Controller\Site\Index']);
     }
 
-    public function upgrade($oldVersion, $newVersion, \Laminas\ServiceManager\ServiceLocatorInterface $serviceLocator)
+    public function install(ServiceLocatorInterface $serviceLocator)
     {
-        if (version_compare($oldVersion, '2.0.0', '<')) {
-            $store = $serviceLocator->get('Omeka\File\Store');
-
-            $storePath = OMEKA_PATH . '/files/';
-            $oldDir = 'CSV_Export';
-            $newDir = 'Export';
-
-            // not guaranteed to work! Pemission issues, etc. but it is not critical
-            // and will only issue a warning
-            if (!is_dir($storePath . $oldDir)) {
-                mkdir($storePath . $newDir);
-            } else {
-                rename($storePath . $oldDir, $storePath . $newDir);
+        $connection = $serviceLocator->get('Omeka\Connection');
+        $dirPath = OMEKA_PATH . '/files/Export';
+        if (file_exists($dirPath)) {
+            if (!is_dir($dirPath) || !is_readable($dirPath) || !is_writeable($dirPath)) {
+                $serviceLocator->get('Omeka\Logger')->err(
+                    'The directory "{path}" is not writeable.', // @translate
+                    ['path' => $dirPath]
+                );
+            }
+        } else {
+            $result = @mkdir($dirPath, 0775);
+            if (!$result) {
+                $serviceLocator->get('Omeka\Logger')->err(
+                    'The directory "{path}" is not writeable: {error}.', // @translate
+                    ['path' => $dirPath, 'error' => error_get_last()['message']]
+                );
             }
         }
+
+        $sql = <<<'SQL'
+            CREATE TABLE export_background_exports (id INT AUTO_INCREMENT NOT NULL, job_id INT NOT NULL, created DATETIME NOT NULL, filename VARCHAR(255) NOT NULL, extension VARCHAR(255) NOT NULL, query VARCHAR(255) DEFAULT NULL, resource_type VARCHAR(255) NOT NULL, resources_count INT NOT NULL, file_uri VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_4E823CA13C0BE965 (filename), UNIQUE INDEX UNIQ_4E823CA1BE04EA9 (job_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
+            ALTER TABLE export_background_exports ADD CONSTRAINT FK_4E823CA1BE04EA9 FOREIGN KEY (job_id) REFERENCES job (id);
+            SQL;
+
+        $sqls = array_filter(array_map('trim', explode(';', $sql)));
+        foreach ($sqls as $sql) {
+            $connection->exec($sql);
+        }
+    }
+
+    public function upgrade($oldVersion, $newVersion, ServiceLocatorInterface $serviceLocator)
+    {
+        if (version_compare($oldVersion, '2.0.0', '<')) {
+            $connection = $serviceLocator->get('Omeka\Connection');
+            $storePath = OMEKA_PATH . '/files/';
+            $oldPath = $storePath . 'CSV_Export';
+            $newPath = $storePath . 'Export';
+
+            if (file_exists($oldPath)) {
+                if (!is_dir($oldPath) || !is_readable($oldPath) || !is_writeable($oldPath)) {
+                    $serviceLocator->get('Omeka\Logger')->err(
+                        'The directory "{path}" is not writeable.', // @translate
+                        ['path' => $oldPath]
+                    );
+                } else {
+                    rename($oldPath, $newPath);
+                }
+            } else {
+                $result = @mkdir($newPath, 0775);
+                if (!$result) {
+                    $serviceLocator->get('Omeka\Logger')->err(
+                        'The directory "{path}" is not writeable: {error}.', // @translate
+                        ['path' => $newPath, 'error' => error_get_last()['message']]
+                    );
+                }
+            }
+
+            $sql = <<<'SQL'
+                CREATE TABLE export_background_exports (id INT AUTO_INCREMENT NOT NULL, job_id INT NOT NULL, created DATETIME NOT NULL, filename VARCHAR(255) NOT NULL, extension VARCHAR(255) NOT NULL, query VARCHAR(255) DEFAULT NULL, resource_type VARCHAR(255) NOT NULL, resources_count INT NOT NULL, file_uri VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_4E823CA13C0BE965 (filename), UNIQUE INDEX UNIQ_4E823CA1BE04EA9 (job_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;
+                ALTER TABLE export_background_exports ADD CONSTRAINT FK_4E823CA1BE04EA9 FOREIGN KEY (job_id) REFERENCES job (id);
+                SQL;
+
+            $sqls = array_filter(array_map('trim', explode(';', $sql)));
+            foreach ($sqls as $sql) {
+                $connection->exec($sql);
+            }
+        }
+    }
+
+    public function uninstall(ServiceLocatorInterface $serviceLocator)
+    {
+        $connection = $serviceLocator->get('Omeka\Connection');
+        $sql = <<<'SQL'
+        ALTER TABLE export_background_exports DROP FOREIGN KEY FK_4E823CA1BE04EA9;
+        DROP TABLE IF EXISTS export_background_exports;
+        SQL;
+
+        $sqls = array_filter(array_map('trim', explode(';', $sql)));
+        foreach ($sqls as $sql) {
+            $connection->exec($sql);
+        }
+
+        $storePath = OMEKA_PATH . '/files/Export';
+        $this->removeFolder($storePath);
     }
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
@@ -166,6 +236,21 @@ class Module extends AbstractModule
             }
         } else {
             $form->add($fieldset);
+        }
+    }
+
+    public function removeFolder($dir)
+    {
+        if (is_dir($dir)) {
+            $files = scandir($dir);
+            foreach ($files as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $path = $dir . '/' . $file;
+
+                    unlink($path);
+                }
+            }
+            rmdir($dir);
         }
     }
 }

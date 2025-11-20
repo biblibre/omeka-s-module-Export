@@ -1,7 +1,7 @@
 <?php
-namespace Export\Service\Controller;
+namespace Export\Service\Controller\Admin;
 
-use Export\Controller\IndexController;
+use Export\Controller\Admin\IndexController;
 use Interop\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 

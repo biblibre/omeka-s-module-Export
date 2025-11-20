@@ -6,8 +6,6 @@ Export is a module for Omeka S which exports items, media or items sets in vario
 Export files in CSV/JSON include resource metadata and a link to associated media. 
 TXT and BibTex only include metadata.
 
-This module has not been tested with very large item sets. Consider breaking very large item sets in to smaller item sets for exporting.
-
 Installation
 ------------
 
@@ -121,6 +119,7 @@ Contact
 Current maintainers:
 
 * Laura Eiford
+* BibLibre
 
 Copyright
 ---------

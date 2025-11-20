@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 16:01+0100\n"
+"POT-Creation-Date: 2025-11-25 14:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,38 +17,47 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: view/export/index/export-item-set.phtml:7
+#: view/export/admin/detail.phtml:22
+msgid "Job details"
+msgstr ""
+
+#: view/export/admin/index/export-item-set.phtml:7
 msgid "Export items from an item set"
 msgstr ""
 
-#: view/export/index/export-item-set.phtml:11
+#: view/export/admin/index/export-item-set.phtml:11
 msgid "Start export"
 msgstr ""
 
-#: view/export/list/list.phtml:7
-msgid "Export list"
+#: view/export/admin/list/list.phtml:4
+msgid "Exports"
 msgstr ""
 
-#: view/export/list/list.phtml:9
-msgid "Previous exports from jobs"
+#: view/export/admin/list/list.phtml:7
+msgid "No exports saved yet"
 msgstr ""
 
-#: view/export/list/list.phtml:11
-msgid "No exports yet"
+#: view/export/admin/list/list.phtml:20
+msgid "Job"
 msgstr ""
 
-#: view/export/list/list.phtml:17
+#: view/export/admin/list/list.phtml:21
 msgid "Actions"
 msgstr ""
 
-#: src/Exporter.php:293
+#: src/Exporter.php:295
 #, php-format
 msgid "Accessed on: %s"
 msgstr ""
 
-#: src/Controller/IndexController.php:39 src/Controller/IndexController.php:122
+#: src/Controller/Admin/IndexController.php:39
 #, php-format
 msgid "Export started in %sjob %s%s"
+msgstr ""
+
+#: src/Controller/Admin/IndexController.php:121
+#, php-format
+msgid "Export started in %s job %s%s"
 msgstr ""
 
 #: src/Form/ExportItemSetForm.php:26
@@ -81,10 +90,18 @@ msgstr ""
 msgid "Export formats enabled for this site"
 msgstr ""
 
-#: config/module.config.php:107
+#: config/module.config.php:120
 msgid "Download"
 msgstr ""
 
-#: config/module.config.php:113
+#: config/module.config.php:133
 msgid "Export List"
+msgstr ""
+
+#: Module.php:35 Module.php:71
+msgid "The directory \"{path}\" is not writeable."
+msgstr ""
+
+#: Module.php:43 Module.php:81
+msgid "The directory \"{path}\" is not writeable: {error}."
 msgstr ""

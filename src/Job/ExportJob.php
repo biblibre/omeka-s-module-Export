@@ -3,6 +3,7 @@
 namespace Export\Job;
 
 use Omeka\Job\AbstractJob;
+use Datetime;
 
 class ExportJob extends AbstractJob
 {
@@ -11,29 +12,53 @@ class ExportJob extends AbstractJob
         $services = $this->getServiceLocator();
         $logger = $services->get('Omeka\Logger');
         $store = $this->getServiceLocator()->get('Omeka\File\Store');
-
+        $api = $this->getServiceLocator()->get('Omeka\ApiManager');
         $exporter = $services->get('Export\Exporter');
 
         $logger->info('Job started');
 
-        $now = date("Y-m-d_H-i-s");
+        $date = new Datetime('now');
+        $now = time();
 
-        $filename = tempnam(sys_get_temp_dir(), 'omekas_export');
-        $fileTemp = fopen($filename, 'w');
-        $exporter->setFileHandle($fileTemp);
+        $tmpFilename = tempnam(sys_get_temp_dir(), 'omekas_export');
+        $fileHandler = fopen($tmpFilename, 'w');
+        $exporter->setFileHandle($fileHandler);
         $resourceType = $this->getArg('resource_type');
+        $queryJob = $this->getArg('query_job');
+        $queryString = $this->getArg('query_string');
 
-        $exporter->exportResourcesByQuery($this->getArg('query'), $resourceType, $this->getArg('format_name'));
+        $resourcesCount = $exporter->exportResourcesByQuery($queryJob, $resourceType, $this->getArg('format_name'));
+        if ($resourcesCount == 0) {
+            $logger->info("None resources to export");
+            return;
+        }
 
-        fclose($fileTemp);
+        fclose($fileHandler);
 
         $fileExtension = \Export\Exporter::IMPLEMENTED_FORMATS[$this->getArg('format_name')]['extension'] ?? "";
 
-        $store->put($filename, sprintf("Export/omekas_$now%s", $fileExtension));
+        $filename = sprintf("omekas_%s", $now);
+        $exportFile = sprintf("Export/%s%s", $filename, $fileExtension);
+        $store->put($tmpFilename, $exportFile);
+        $fileUri = $store->getUri($exportFile);
 
-        unlink($filename);
+        unlink($tmpFilename);
 
-        $logger->info(sprintf("Saved in files/Export/omekas_$now%s", $fileExtension));
+        $exportBackup = [
+            'filename' => $filename,
+            'extension' => $fileExtension,
+            'resource_type' => $resourceType,
+            'resources_count' => $resourcesCount,
+            'query' => $queryString,
+            'o:job' => ['o:id' => $this->job->getId()],
+            'file_uri' => $fileUri,
+            'created' => $date,
+        ];
+
+        $api->create('export_background_exports', $exportBackup);
+
+        $logger->info(sprintf("%d resource(s) has been exported", $resourcesCount));
+        $logger->info(sprintf("The file is available at the following address: $fileUri"));
         $logger->info('Job ended');
     }
 }

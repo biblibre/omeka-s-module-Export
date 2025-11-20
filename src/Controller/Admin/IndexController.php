@@ -1,6 +1,6 @@
 <?php
 
-namespace Export\Controller;
+namespace Export\Controller\Admin;
 
 use Export\Form\ExportItemSetForm;
 use Export\Job\ExportJob;
@@ -29,14 +29,14 @@ class IndexController extends AbstractActionController
             if ($form->isValid()) {
                 $formData = $form->getData();
 
-                $args['query'] = ['item_set_id' => $formData['item_set']];
+                $args['query_job'] = ['item_set_id' => $formData['item_set']];
                 $args['format_name'] = $formData['format_name'];
                 $args['resource_type'] = 'items';
 
                 $this->sendJob($args);
 
                 $message = new Message(
-                    'Export started in %sjob %s%s', // @translate
+                    'Export started in %s job %s%s', // @translate
                     sprintf('<a href="%s">', htmlspecialchars(
                         $this->getJobUrl(),
                     )),
@@ -106,20 +106,19 @@ class IndexController extends AbstractActionController
 
             return $response;
         } else {
-            $args = $queryParams->toArray();
-            unset($args['page']);
-
+            $queryString = $queryParams->toString();
+            unset($queryParams['page']);
             $controller = $postParams['controller'];
             $controllerMapping = [
-            'Omeka\Controller\Admin\ItemSet' => 'item_sets',
-            'Omeka\Controller\Admin\Item' => 'items',
-            'Omeka\Controller\Admin\Media' => 'media',
-        ];
+                'Omeka\Controller\Admin\ItemSet' => 'item_sets',
+                'Omeka\Controller\Admin\Item' => 'items',
+                'Omeka\Controller\Admin\Media' => 'media',
+            ];
 
-            $this->sendJob(['query' => $args, 'resource_type' => $controllerMapping[$controller], 'format_name' => $postParams['format_name']]);
+            $this->sendJob(['query_job' => $queryParams, 'query_string' => $queryString, 'resource_type' => $controllerMapping[$controller], 'format_name' => $postParams['format_name']]);
 
             $message = new Message(
-                'Export started in %sjob %s%s', // @translate
+                'Export started in %s job %s%s', // @translate
                 sprintf('<a href="%s">', htmlspecialchars(
                     $this->getJobUrl(),
                 )),
@@ -139,10 +138,12 @@ class IndexController extends AbstractActionController
         $request = $this->getRequest();
         $queryParams = $request->getQuery();
 
-        if ($queryParams['file_name']) {
+        if ($queryParams['id'] && $queryParams['filename']) {
             $store = $this->serviceLocator->get('Omeka\File\Store');
+            $api = $this->serviceLocator->get('Omeka\ApiManager');
 
-            $store->delete('Export/' . $queryParams['file_name']);
+            $store->delete('Export/' . $queryParams['filename']);
+            $api->delete('export_background_exports', $queryParams['id']);
         }
         return $this->redirect()->toRoute('admin/export/list', ['controller' => 'list', 'action' => 'list'], []);
     }
