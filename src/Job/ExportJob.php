@@ -33,7 +33,7 @@ class ExportJob extends AbstractJob
 
         unlink($filename);
 
-        $logger->info(sprintf("%d ressources has been exported", $resourcesCount));
+        $logger->info(sprintf("%d resources has been exported", $resourcesCount));
         $logger->info(sprintf("Saved in %s/files/Export/omekas_$now%s", OMEKA_PATH, $fileExtension));
         $logger->info('Job ended');
     }

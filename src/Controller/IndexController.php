@@ -119,7 +119,7 @@ class IndexController extends AbstractActionController
             $this->sendJob(['query' => $args, 'resource_type' => $controllerMapping[$controller], 'format_name' => $postParams['format_name']]);
 
             $message = new Message(
-                'Export started in %sjob %s%s', // @translate
+                'Export started in %s job %s%s', // @translate
                 sprintf('<a href="%s">', htmlspecialchars(
                     $this->getJobUrl(),
                 )),
