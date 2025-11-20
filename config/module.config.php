@@ -32,7 +32,7 @@ return [
                     'export' => [
                         'type' => 'Literal',
                         'options' => [
-                            'route' => '/export-item-set',
+                            'route' => '/export',
                             'defaults' => [
                                 '__NAMESPACE__' => 'Export\Controller',
                                 'controller' => 'Index',
