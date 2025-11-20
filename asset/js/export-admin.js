@@ -2,17 +2,34 @@
     $(document).ready(function () {
         const resourcesCheckboxes = $("input[type='checkbox'][name='resource_ids[]']");
         const exportButtonForm = $('#export-button-form');
+        const selectAllCheckbox = $("input[type='checkbox'].select-all");
         const selectedIds = new Set();
+
+        selectAllCheckbox.on('change', function () {
+            resourcesCheckboxes.each(function () {
+                const value = $(this).val();
+                if ($(this).is(':checked') && !selectedIds.has(value)) {
+                    selectedIds.add(value);
+                }
+                if ($(this).is(':checked') === false && selectedIds.has(value)) {
+                    selectedIds.delete(value);
+                }
+            });
+            updateHiddenInputs();
+        });
 
         resourcesCheckboxes.on('change', function () {
             const value = $(this).val();
+                if ($(this).is(':checked') && !selectedIds.has(value)) {
+                    selectedIds.add(value);
+                }
+                if ($(this).is(':checked') === false && selectedIds.has(value)) {
+                    selectedIds.delete(value);
+                }
+            updateHiddenInputs();
+        });
 
-            if ($(this).is(':checked')) {
-                selectedIds.add(value);
-            } else {
-                selectedIds.delete(value);
-            }
-
+        function updateHiddenInputs() {
             exportButtonForm.find('input[name="resource_ids[]"]').remove();
             selectedIds.forEach(function(id) {
                 $('<input>').attr({
@@ -21,6 +38,6 @@
                     value: id
                 }).appendTo(exportButtonForm);
             });
-        });
+        }
     });
 })(jQuery);
