@@ -3,6 +3,7 @@
 namespace Export;
 
 use Omeka\Api\Exception\NotFoundException;
+use Laminas\Http\Request;
 
 class Exporter
 {
@@ -157,8 +158,10 @@ class Exporter
         $transformStr = '';
 
         if (!array_key_exists('mappings', $mappingObject)) {
-            if (!array_key_exists('type', $mappingObject) ||
-                ($mappingObject['type'] != 'accessDate' && $mappingObject['type'] != 'resourceUrl')) {
+            if (
+                !array_key_exists('type', $mappingObject) ||
+                ($mappingObject['type'] != 'accessDate' && $mappingObject['type'] != 'resourceUrl')
+            ) {
                 return '';
             }
         }
@@ -292,9 +295,10 @@ class Exporter
         } elseif ($type == "resourceUrl") {
             return sprintf("\\url{%s}", $resource["@id"]);
         } elseif ($type == "accessDate") {
-            return sprintf("Accessed on: %s", // @translate
-                                date_format(date_create(), 'Y-d-m')
-                            );
+            return sprintf(
+                "Accessed on: %s", // @translate
+                date_format(date_create(), 'Y-d-m')
+            );
         }
 
         return $transformStr;
@@ -313,76 +317,146 @@ class Exporter
         $escapedString = "";
 
         $map = [
-            "#", "\\#",
-            "$", "\\$",
-            "%", "\\%",
-            "&", "\\&",
-            "~", "\\~{}",
-            "_", "\\_",
-            "^", "\\^{}",
-            "\\", "\\textbackslash",
-            "{", "\\{",
-            "}", "\\}",
-            "é", "\\'{e}",
-            "É", "\\'{E}",
-            "È", "\\`{E}",
-            "Ê", "\\^{E}",
-            "ê", "\\^{e}",
-            "è", "\\`{e}",
-            "ë", "\\\"{e}",
-            "Ë", "\\\"{E}",
-            "à", "\\`{a}",
-            "á", "\\'{a}",
-            "â", "\\^{a}",
-            "À", "\\`{A}",
-            "Â", "\\^{A}",
-            "Á", "\\'{A}",
-            "ä", "\\\"{a}",
-            "Ä", "\\\"{A}",
-            "о́", "\\'{o}",
-            "ò", "\\`{o}",
-            "ô", "\\^{o}",
-            "ö", "\\\"{o}",
-            "Ö", "\\\"{O}",
-            "Ó", "\\'{O}",
-            "Ò", "\\`{O}",
-            "Ô", "\\^{O}",
-            "ù", "\\`{u}",
-            "û", "\\^{u}",
-            "ú", "\\'{u}",
-            "ü", "\\\"{u}",
-            "Ü", "\\\"{U}",
-            "Ú", "\\'{U}",
-            "Ù", "\\`{U}",
-            "Û", "\\^{U}",
-            "î", "\\^{i}",
-            "í", "\\'{i}",
-            "ì", "\\`{i}",
-            "ï", "\\\"{i}",
-            "Ï", "\\\"{I}",
-            "Î", "\\^{I}",
-            "Ì", "\\`{I}",
-            "Í", "\\'{I}",
-            "ŷ", "\\^{y}",
-            "ý", "\\'{y}",
-            "ỳ", "\\`{y}",
-            "ÿ", "\\\"{y}",
-            "Ÿ", "\\\"{Y}",
-            "Ŷ", "\\^{Y}",
-            "Ý", "\\'{Y}",
-            "Ỳ", "\\`{Y}",
-            "å", "\\aa",
-            "Å", "\\AA",
-            "œ", "\\oe",
-            "Œ", "\\OE",
-            "æ", "\\ae",
-            "Æ", "\\AE",
-            "ß", "\\ss",
-            "ẞ", "\\SS",
-            "ø", "\\o",
-            "Ø", "\\O",
-            "ł", "\\l",
-            "Ł", "\\L",
+            "#",
+            "\\#",
+            "$",
+            "\\$",
+            "%",
+            "\\%",
+            "&",
+            "\\&",
+            "~",
+            "\\~{}",
+            "_",
+            "\\_",
+            "^",
+            "\\^{}",
+            "\\",
+            "\\textbackslash",
+            "{",
+            "\\{",
+            "}",
+            "\\}",
+            "é",
+            "\\'{e}",
+            "É",
+            "\\'{E}",
+            "È",
+            "\\`{E}",
+            "Ê",
+            "\\^{E}",
+            "ê",
+            "\\^{e}",
+            "è",
+            "\\`{e}",
+            "ë",
+            "\\\"{e}",
+            "Ë",
+            "\\\"{E}",
+            "à",
+            "\\`{a}",
+            "á",
+            "\\'{a}",
+            "â",
+            "\\^{a}",
+            "À",
+            "\\`{A}",
+            "Â",
+            "\\^{A}",
+            "Á",
+            "\\'{A}",
+            "ä",
+            "\\\"{a}",
+            "Ä",
+            "\\\"{A}",
+            "о́",
+            "\\'{o}",
+            "ò",
+            "\\`{o}",
+            "ô",
+            "\\^{o}",
+            "ö",
+            "\\\"{o}",
+            "Ö",
+            "\\\"{O}",
+            "Ó",
+            "\\'{O}",
+            "Ò",
+            "\\`{O}",
+            "Ô",
+            "\\^{O}",
+            "ù",
+            "\\`{u}",
+            "û",
+            "\\^{u}",
+            "ú",
+            "\\'{u}",
+            "ü",
+            "\\\"{u}",
+            "Ü",
+            "\\\"{U}",
+            "Ú",
+            "\\'{U}",
+            "Ù",
+            "\\`{U}",
+            "Û",
+            "\\^{U}",
+            "î",
+            "\\^{i}",
+            "í",
+            "\\'{i}",
+            "ì",
+            "\\`{i}",
+            "ï",
+            "\\\"{i}",
+            "Ï",
+            "\\\"{I}",
+            "Î",
+            "\\^{I}",
+            "Ì",
+            "\\`{I}",
+            "Í",
+            "\\'{I}",
+            "ŷ",
+            "\\^{y}",
+            "ý",
+            "\\'{y}",
+            "ỳ",
+            "\\`{y}",
+            "ÿ",
+            "\\\"{y}",
+            "Ÿ",
+            "\\\"{Y}",
+            "Ŷ",
+            "\\^{Y}",
+            "Ý",
+            "\\'{Y}",
+            "Ỳ",
+            "\\`{Y}",
+            "å",
+            "\\aa",
+            "Å",
+            "\\AA",
+            "œ",
+            "\\oe",
+            "Œ",
+            "\\OE",
+            "æ",
+            "\\ae",
+            "Æ",
+            "\\AE",
+            "ß",
+            "\\ss",
+            "ẞ",
+            "\\SS",
+            "ø",
+            "\\o",
+            "Ø",
+            "\\O",
+            "ł",
+            "\\l",
+            "Ł",
+            "\\L",
         ];
 
         $bFound = false;
@@ -431,9 +505,11 @@ class Exporter
             if (array_key_exists('o:resource_template', $resource) && !is_null($resource['o:resource_template'])) {
                 $bHasResourceTemplate = true;
 
-                $resourceTemplate = $this->formatData($api->search('resource_templates',
-                                        ['id' => $resource['o:resource_template']['o:id']])
-                                    ->getContent()[0]);
+                $resourceTemplate = $this->formatData($api->search(
+                    'resource_templates',
+                    ['id' => $resource['o:resource_template']['o:id']]
+                )
+                    ->getContent()[0]);
             }
 
             // looping through properties to find something like dcterms:title
@@ -448,9 +524,11 @@ class Exporter
                     $bIsProperty = false;
 
                     foreach ($propertyValue as $propertyValueElement) {
-                        if (is_array($propertyValueElement) &&
+                        if (
+                            is_array($propertyValueElement) &&
                             array_key_exists('property_id', $propertyValueElement)
-                            && array_key_exists('property_label', $propertyValueElement)) {
+                            && array_key_exists('property_label', $propertyValueElement)
+                        ) {
                             $bIsProperty = true;
 
                             // we found a property like dcterms:title!
@@ -463,8 +541,10 @@ class Exporter
                                     $correspondingResourceTemplateProperty = null;
                                     foreach ($resourceTemplate['o:resource_template_property'] as $resourceTemplateProperty) {
                                         if ($resourceTemplateProperty['o:property']['o:id'] == $propertyValueElement['property_id']) {
-                                            if (array_key_exists('o:alternate_label', $resourceTemplateProperty) &&
-                                            $resourceTemplateProperty['o:alternate_label']) {
+                                            if (
+                                                array_key_exists('o:alternate_label', $resourceTemplateProperty) &&
+                                                $resourceTemplateProperty['o:alternate_label']
+                                            ) {
                                                 $correspondingResourceTemplateProperty = $resourceTemplateProperty;
                                             }
                                             break;
@@ -506,8 +586,10 @@ class Exporter
             return $property['o:label'];
         } elseif ($property['type'] == "resource") {
             return $property['display_title'];
-        } elseif (str_contains($property['type'], "customvocab") ||
-                 str_contains($property['type'], "valuesuggest")) {
+        } elseif (
+            str_contains($property['type'], "customvocab") ||
+            str_contains($property['type'], "valuesuggest")
+        ) {
             if (array_key_exists('@value', $property)) {
                 return $property['@value'];
             } elseif (array_key_exists('o:label', $property)) {
@@ -520,11 +602,11 @@ class Exporter
         return '';
     }
 
-    protected function transformToCSV($resource)
+    protected function transformToCSV($resources)
     {
-        $resource = $this->formatData($resource);
+        $resources = $this->formatData($resources, true);
         $itemMedia = [];
-        foreach ($resource as $resource) {
+        foreach ($resources as $resource) {
             if (array_key_exists('o:media', $resource) && !empty($resource['o:media'])) {
                 $mediaIds = $resource['o:media'];
                 $mediaOut = "";
@@ -561,7 +643,7 @@ class Exporter
         if ($resultCount > 0) {
             $collectionHeaders = array_keys($collection[0]);
             $header = array_merge($collectionHeaders, $properties);
-            fputcsv($output, array_merge($header, ['json']));
+            fputcsv($output, $header);
             foreach ($collection as $item) {
                 if (is_array($item)) {
                     $outputItem = [];
@@ -569,8 +651,21 @@ class Exporter
                         if (array_key_exists($column, $item)) {
                             $row = $item[$column];
                             if (is_array($row)) {
+                                if (array_key_exists('@id', $row)) {
+                                    $apiJsonResponse = $this->getApiJson($row['@id']);
+                                }
                                 if (array_key_exists('o:id', $row)) {
-                                    array_push($outputItem, $row['o:id']);
+                                    if (isset($apiJsonResponse)) {
+                                        if (array_key_exists('o:title', $apiJsonResponse)) {
+                                            $valueString = $apiJsonResponse['o:title'];
+                                        } elseif (array_key_exists('o:label', $apiJsonResponse)) {
+                                            $valueString = $apiJsonResponse['o:label'];
+                                        } elseif (array_key_exists('o:name', $apiJsonResponse)) {
+                                            $valueString = $apiJsonResponse['o:name'];
+                                        }
+                                        $valueToAdd = isset($valueString) ? $valueString : $row['o:id'];
+                                    }
+                                    array_push($outputItem, $valueToAdd);
                                 } elseif (array_key_exists('@value', $row)) {
                                     array_push($outputItem, $row['@value']);
                                 } else {
@@ -578,15 +673,26 @@ class Exporter
                                     $multiRow = "";
                                     foreach ($row as $single) {
                                         if (is_array($single)) {
+                                            if (array_key_exists('@id', $single)) {
+                                                $apiJsonResponse = $this->getApiJson($single['@id']);
+                                            }
                                             if (array_key_exists('o:id', $single)) {
-                                                $multiRow = $multiRow . ";" . $single['o:id'] ;
+                                                if (isset($apiJsonResponse)) {
+                                                    if (array_key_exists('o:title', $apiJsonResponse)) {
+                                                        $valueString = $apiJsonResponse['o:title'];
+                                                    } elseif (array_key_exists('o:label', $apiJsonResponse)) {
+                                                        $valueString = $apiJsonResponse['o:label'];
+                                                    } elseif (array_key_exists('o:name', $apiJsonResponse)) {
+                                                        $valueString = $apiJsonResponse['o:name'];
+                                                    }
+                                                }
+                                                $valueToAdd = isset($valueString) ? $valueString : $single['o:id'];
+                                                $multiRow = $multiRow . ";" . $valueToAdd;
                                             } elseif (array_key_exists('@value', $single)) {
-                                                $multiRow = $multiRow . ";" . $single['@value'] ;
-                                            } elseif (array_key_exists('@id', $single)) {
-                                                $multiRow = $multiRow . ";" . $single['@id'] ;
+                                                $multiRow = $multiRow . ";" . $single['@value'];
                                             }
                                         } else {
-                                            $multiRow = $multiRow . ";" . $single ;
+                                            $multiRow = $multiRow . ";" . $single;
                                         }
                                     }
                                     $multiRow = substr($multiRow, 1);
@@ -615,15 +721,17 @@ class Exporter
         $query[$field] = $criteria;
         $resources = $api->search($type, $query)->getContent();
         $out = $this->formatData($resources);
-
         return $out;
     }
 
-    protected function formatData($rawData)
+    protected function formatData($rawData, $needCleanUp = false)
     {
         $arr = json_encode($rawData, true);
         $resources = json_decode($arr, true);
-        return $resources ;
+        if ($needCleanUp) {
+            $resources = $this->cleanUp($resources);
+        }
+        return $resources;
     }
 
     public function setFileHandle($fileHandle)
@@ -634,5 +742,42 @@ class Exporter
     public function getFileHandle()
     {
         return $this->fileHandle;
+    }
+
+    private function cleanUp($resources)
+    {
+        $keysToClean = ['@context', 'o:primary_media', 'o:thumbnail', 'thumbnail_display_urls', 'o:owner'];
+        foreach ($resources as &$resource) {
+            foreach ($keysToClean as $key) {
+                unset($resource[$key]);
+            }
+            if (is_array($resource['@type'])) {
+                foreach ($resource['@type'] as $key => $data) {
+                    if (strpos($data, 'dctype:') === 0) {
+                        unset($resource['@type'][$key]);
+                        break;
+                    }
+                }
+            }
+        }
+        return $resources;
+    }
+
+    private function getApiJson($apiUrl)
+    {
+        $services = $this->application->getServiceManager();
+        $httpClient = $services->get('Omeka\HttpClient');
+        $logger = $services->get('Omeka\Logger');
+        $request = new Request;
+
+        $request->setUri($apiUrl);
+        $response = $httpClient->send($request);
+        if (!$response->isSuccess()) {
+            $logger->warn(sprintf('Request to api failed (uri: %s, status code: %d)', $apiUrl, $response->getStatusCode()));
+        }
+
+        $json = $response->getBody();
+        $data = json_decode($json, true);
+        return $data;
     }
 }
