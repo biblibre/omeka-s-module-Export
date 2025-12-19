@@ -328,7 +328,7 @@ class Exporter
             "~",
             "\\~{}",
             "_",
-            "\\_",
+            "\_",
             "^",
             "\\^{}",
             "\\",
@@ -631,86 +631,124 @@ class Exporter
         $properties = $this->getData("", 'term', 'properties');
         $propertyNames = [];
         foreach ($properties as $property) {
-            $p = $property['o:term'];
-            array_push($propertyNames, $p);
+            $propertyNames[] = $property['o:term'];
         }
+
         $collection = $itemMedia;
-        $properties = $propertyNames;
+        $resultCount = count($collection);
+        if ($resultCount === 0) {
+            return;
+        }
 
-        $output = $this->getFileHandle();
-
-        $resultCount = sizeOf($collection);
-        if ($resultCount > 0) {
-            $collectionHeaders = array_keys($collection[0]);
-            $header = array_merge($collectionHeaders, $properties);
-            fputcsv($output, $header);
-            foreach ($collection as $item) {
-                if (is_array($item)) {
-                    $outputItem = [];
-                    foreach ($header as $column) {
-                        if (array_key_exists($column, $item)) {
-                            $row = $item[$column];
-                            if (is_array($row)) {
-                                if (array_key_exists('@id', $row)) {
-                                    $apiJsonResponse = $this->getApiJson($row['@id']);
-                                }
-                                if (array_key_exists('o:id', $row)) {
-                                    if (isset($apiJsonResponse)) {
-                                        if (array_key_exists('o:title', $apiJsonResponse)) {
-                                            $valueString = $apiJsonResponse['o:title'];
-                                        } elseif (array_key_exists('o:label', $apiJsonResponse)) {
-                                            $valueString = $apiJsonResponse['o:label'];
-                                        } elseif (array_key_exists('o:name', $apiJsonResponse)) {
-                                            $valueString = $apiJsonResponse['o:name'];
-                                        }
-                                        $valueToAdd = isset($valueString) ? $valueString : $row['o:id'];
-                                    }
-                                    array_push($outputItem, $valueToAdd);
-                                } elseif (array_key_exists('@value', $row)) {
-                                    array_push($outputItem, $row['@value']);
-                                } else {
-                                    //Row has multiple values
-                                    $multiRow = "";
-                                    foreach ($row as $single) {
-                                        if (is_array($single)) {
-                                            if (array_key_exists('@id', $single)) {
-                                                $apiJsonResponse = $this->getApiJson($single['@id']);
-                                            }
-                                            if (array_key_exists('o:id', $single)) {
-                                                if (isset($apiJsonResponse)) {
-                                                    if (array_key_exists('o:title', $apiJsonResponse)) {
-                                                        $valueString = $apiJsonResponse['o:title'];
-                                                    } elseif (array_key_exists('o:label', $apiJsonResponse)) {
-                                                        $valueString = $apiJsonResponse['o:label'];
-                                                    } elseif (array_key_exists('o:name', $apiJsonResponse)) {
-                                                        $valueString = $apiJsonResponse['o:name'];
-                                                    }
-                                                }
-                                                $valueToAdd = isset($valueString) ? $valueString : $single['o:id'];
-                                                $multiRow = $multiRow . ";" . $valueToAdd;
-                                            } elseif (array_key_exists('@value', $single)) {
-                                                $multiRow = $multiRow . ";" . $single['@value'];
-                                            }
-                                        } else {
-                                            $multiRow = $multiRow . ";" . $single;
-                                        }
-                                    }
-                                    $multiRow = substr($multiRow, 1);
-                                    array_push($outputItem, $multiRow);
-                                }
-                            } else {
-                                array_push($outputItem, $row);
-                            }
-                        } else {
-                            array_push($outputItem, "");
-                        }
-                    }
-                    unset($item['media:full']);
-                    array_push($outputItem, json_encode($item));
-                    fputcsv($output, $outputItem);
-                }
+        $collectionHeaders = array_keys($collection[0]);
+        $header = $collectionHeaders;
+        foreach ($propertyNames as $p) {
+            if (!in_array($p, $header, true)) {
+                $header[] = $p;
             }
         }
+
+        $temp = tmpfile();
+        $usedColumns = array_fill_keys($header, false);
+
+        foreach ($collection as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $outputItem = [];
+            foreach ($header as $column) {
+                if (array_key_exists($column, $item)) {
+                    $row = $item[$column];
+                    if (is_array($row)) {
+                        if (array_key_exists('@id', $row)) {
+                            $apiJsonResponse = $this->getApiJson($row['@id']);
+                        }
+                        if (array_key_exists('o:id', $row)) {
+                            $valueString = null;
+                            if (isset($apiJsonResponse)) {
+                                if (array_key_exists('o:title', $apiJsonResponse)) {
+                                    $valueString = $apiJsonResponse['o:title'];
+                                } elseif (array_key_exists('o:label', $apiJsonResponse)) {
+                                    $valueString = $apiJsonResponse['o:label'];
+                                } elseif (array_key_exists('o:name', $apiJsonResponse)) {
+                                    $valueString = $apiJsonResponse['o:name'];
+                                }
+                            }
+                            $valueToPush = isset($valueString) ? $valueString : $row['o:id'];
+                        } elseif (array_key_exists('@value', $row)) {
+                            $valueToPush = $row['@value'];
+                        } else {
+                            $multiRow = "";
+                            foreach ($row as $single) {
+                                if (is_array($single)) {
+                                    if (array_key_exists('@id', $single)) {
+                                        $apiJsonResponse = $this->getApiJson($single['@id']);
+                                    }
+                                    if (array_key_exists('o:id', $single)) {
+                                        $valueString = null;
+                                        if (isset($apiJsonResponse)) {
+                                            if (array_key_exists('o:title', $apiJsonResponse)) {
+                                                $valueString = $apiJsonResponse['o:title'];
+                                            } elseif (array_key_exists('o:label', $apiJsonResponse)) {
+                                                $valueString = $apiJsonResponse['o:label'];
+                                            } elseif (array_key_exists('o:name', $apiJsonResponse)) {
+                                                $valueString = $apiJsonResponse['o:name'];
+                                            }
+                                        }
+                                        $valueToAdd = isset($valueString) ? $valueString : $single['o:id'];
+                                        $multiRow .= ";" . $valueToAdd;
+                                    } elseif (array_key_exists('@value', $single)) {
+                                        $multiRow .= ";" . $single['@value'];
+                                    }
+                                } else {
+                                    $multiRow .= ";" . $single;
+                                }
+                            }
+                            $valueToPush = ltrim($multiRow, ";");
+                        }
+                    } else {
+                        $valueToPush = $row;
+                    }
+                } else {
+                    $valueToPush = "";
+                }
+
+                if (is_string($valueToPush)) {
+                    if (trim($valueToPush) !== "") {
+                        $usedColumns[$column] = true;
+                    }
+                } elseif ($valueToPush !== null && $valueToPush !== "") {
+                    $usedColumns[$column] = true;
+                }
+
+                $outputItem[] = $valueToPush;
+            }
+            fputcsv($temp, $outputItem);
+        }
+
+        rewind($temp);
+
+        $finalHeader = [];
+        $keepIndexes = [];
+        foreach ($header as $i => $col) {
+            if (!empty($usedColumns[$col])) {
+                $finalHeader[] = $col;
+                $keepIndexes[] = $i;
+            }
+        }
+
+        $finalOutput = $this->getFileHandle();
+        fputcsv($finalOutput, $finalHeader);
+
+        while (($row = fgetcsv($temp)) !== false) {
+            $filteredRow = [];
+            foreach ($keepIndexes as $idx) {
+                $filteredRow[] = array_key_exists($idx, $row) ? $row[$idx] : "";
+            }
+            fputcsv($finalOutput, $filteredRow);
+        }
+
+        fclose($temp);
     }
 
     protected function getData($criteria, $field, $type)
