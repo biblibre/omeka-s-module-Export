@@ -62,36 +62,7 @@ class Module extends AbstractModule
             'view.show.sidebar',
             [$this, 'echoExportButtonHtml']
         );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Item',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Media',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\ItemSet',
-            'view.show.before',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Item',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\Media',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
-        $sharedEventManager->attach(
-            'Omeka\Controller\Site\ItemSet',
-            'view.show.after',
-            [$this, 'echoExportButtonHtml']
-        );
+
         $sharedEventManager->attach(
             \Omeka\Form\SiteSettingsForm::class,
             'form.add_elements',
@@ -103,27 +74,12 @@ class Module extends AbstractModule
     {
         $params = $this->getServiceLocator()->get('Application')->getMvcEvent()->getRouteMatch()->getParams();
 
-        $fromAdmin = false;
-
         $query = [
             'id' => $params['id'],
         ];
 
-        if ($params['controller'] == 'Omeka\Controller\Admin\Item' ||
-            $params['controller'] == 'Omeka\Controller\Admin\ItemSet' ||
-            $params['controller'] == 'Omeka\Controller\Admin\Media') {
-            $fromAdmin = true;
-        }
-
-        $publicExportButtonPosition = $this->getServiceLocator()->get('Omeka\Settings\Site')->get('export_public_button', 'no');
-
-        if ($event->getName() == 'view.show.after' && $publicExportButtonPosition == 'after'
-        || $event->getName() == 'view.show.before' && $publicExportButtonPosition == 'before'
-        || $event->getName() == 'view.show.sidebar')
-        {
-            $view = $event->getTarget();
-            echo $view->exportButton($fromAdmin, $params['controller'], $query);
-        }
+        $view = $event->getTarget();
+        echo $view->exportButton(true /* fromAdmin */, $params['controller'], $query);
 
     }
     public function handleSiteSettings($event)

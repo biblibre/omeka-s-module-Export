@@ -17,24 +17,6 @@ class SiteSettingsFieldset extends Fieldset
     {
         $this->setLabel($this->label);
 
-        $this->add([
-                'name' => 'export_public_button',
-                'type' => Element\Radio::class,
-                'options' => [
-                    'element_group' => 'export',
-                    'label' => 'Public export button placement', // @translate
-                    'value_options' => [
-                        'no' => 'No', // @translate
-                        'before' => 'Before the resource', // @translate
-                        'after' => 'After the resource', // @translate
-                    ],
-                ],
-                'attributes' => [
-                    'id' => 'export_public_button',
-                    'value' => 'no',
-                ],
-            ]);
-
         $formats = array_keys(\Export\Exporter::IMPLEMENTED_FORMATS);
         $valueOptions = [];
 
