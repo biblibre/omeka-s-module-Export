@@ -130,7 +130,7 @@ class Module extends AbstractModule
             'view.show.sidebar',
             [$this, 'echoExportButtonHtml']
         );
-        
+
         $sharedEventManager->attach(
             \Omeka\Form\SiteSettingsForm::class,
             'form.add_elements',
