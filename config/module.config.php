@@ -38,6 +38,11 @@ return [
             'Export\Controller\Site\Index' => Service\Controller\Site\IndexControllerFactory::class,
         ],
     ],
+    'resource_page_block_layouts' => [
+        'invokables' => [
+            Site\ResourcePageBlockLayout\ExportButton::class => Site\ResourcePageBlockLayout\ExportButton::class,
+        ],
+    ],
     'router' => [
         'routes' => [
             'admin' => [
