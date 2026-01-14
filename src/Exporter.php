@@ -3,7 +3,6 @@
 namespace Export;
 
 use Omeka\Api\Exception\NotFoundException;
-use Laminas\Http\Request;
 
 class Exporter
 {
@@ -618,12 +617,10 @@ class Exporter
                         $mediaOut = $mediaOut . $medium['o:filename'] . ";";
                         $mediaJson = $mediaJson . json_encode($medium) . ";";
                         $resource['media:link'] = $mediaOut;
-                        $resource['media:full'] = $mediaJson;
                     }
                 }
             } else {
                 $resource['media:link'] = "";
-                $resource['media:full'] = "";
             }
             array_push($itemMedia, $resource);
         }
@@ -660,43 +657,22 @@ class Exporter
                 if (array_key_exists($column, $item)) {
                     $row = $item[$column];
                     if (is_array($row)) {
-                        if (array_key_exists('@id', $row)) {
-                            $apiJsonResponse = $this->getApiJson($row['@id']);
-                        }
-                        if (array_key_exists('o:id', $row)) {
-                            $valueString = null;
-                            if (isset($apiJsonResponse)) {
-                                if (array_key_exists('o:title', $apiJsonResponse)) {
-                                    $valueString = $apiJsonResponse['o:title'];
-                                } elseif (array_key_exists('o:label', $apiJsonResponse)) {
-                                    $valueString = $apiJsonResponse['o:label'];
-                                } elseif (array_key_exists('o:name', $apiJsonResponse)) {
-                                    $valueString = $apiJsonResponse['o:name'];
-                                }
+                        if (isset($row['@id'])) {
+                            $labelEntity = $this->getLabelFromRepresentation($row['@id']);
+                            if (isset($labelEntity)) {
+                                $valueToPush = $labelEntity;
                             }
-                            $valueToPush = isset($valueString) ? $valueString : $row['o:id'];
                         } elseif (array_key_exists('@value', $row)) {
                             $valueToPush = $row['@value'];
                         } else {
                             $multiRow = "";
                             foreach ($row as $single) {
                                 if (is_array($single)) {
-                                    if (array_key_exists('@id', $single)) {
-                                        $apiJsonResponse = $this->getApiJson($single['@id']);
-                                    }
-                                    if (array_key_exists('o:id', $single)) {
-                                        $valueString = null;
-                                        if (isset($apiJsonResponse)) {
-                                            if (array_key_exists('o:title', $apiJsonResponse)) {
-                                                $valueString = $apiJsonResponse['o:title'];
-                                            } elseif (array_key_exists('o:label', $apiJsonResponse)) {
-                                                $valueString = $apiJsonResponse['o:label'];
-                                            } elseif (array_key_exists('o:name', $apiJsonResponse)) {
-                                                $valueString = $apiJsonResponse['o:name'];
-                                            }
+                                    if ($single['@id']) {
+                                        $labelEntity = $this->getLabelFromRepresentation($single['@id']);
+                                        if ($labelEntity) {
+                                            $multiRow .= ";" . $labelEntity;
                                         }
-                                        $valueToAdd = isset($valueString) ? $valueString : $single['o:id'];
-                                        $multiRow .= ";" . $valueToAdd;
                                     } elseif (array_key_exists('@value', $single)) {
                                         $multiRow .= ";" . $single['@value'];
                                     }
@@ -801,21 +777,40 @@ class Exporter
         return $resources;
     }
 
-    private function getApiJson($apiUrl)
+    private function getLabelFromRepresentation($apiString)
     {
         $services = $this->application->getServiceManager();
-        $httpClient = $services->get('Omeka\HttpClient');
+        $api = $services->get('Omeka\ApiManager');
         $logger = $services->get('Omeka\Logger');
-        $request = new Request;
 
-        $request->setUri($apiUrl);
-        $response = $httpClient->send($request);
-        if (!$response->isSuccess()) {
-            $logger->warn(sprintf('Request to api failed (uri: %s, status code: %d)', $apiUrl, $response->getStatusCode()));
+        $target = explode("api/", $apiString);
+        if (!isset($target[1])) {
+            return null;
+        }
+        $representationInfo = explode('/', $target[1]);
+        $targetRepresentation = $representationInfo[0];
+        $id = $representationInfo[1];
+        if ($targetRepresentation == 'media') {
+            return $id;
         }
 
-        $json = $response->getBody();
-        $data = json_decode($json, true);
-        return $data;
+        $request = $api->read($targetRepresentation, $id);
+        if (!isset($request)) {
+            $logger->warn(sprintf('Request failed for %s (%d)', $targetRepresentation, $id));
+            return null;
+        }
+        $response = $request->getContent();
+
+        $methods = ['title', 'label'];
+        foreach ($methods as $method) {
+            if (method_exists($response, $method)) {
+                $value = $response->$method();
+                if ($value !== null) {
+                    return $value;
+                }
+            }
+        }
+
+        return null;
     }
 }
