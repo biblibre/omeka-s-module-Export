@@ -176,7 +176,7 @@ class Module extends AbstractModule
             $fromAdmin = true;
         }
 
-        $publicExportButtonPosition = $this->getServiceLocator()->get('Omeka\Settings\Site')->get('export_public_button', 'no');
+        $publicExportButtonPosition = $fromAdmin ? 'no' : $this->getServiceLocator()->get('Omeka\Settings\Site')->get('export_public_button', 'no');
 
         if (
             $event->getName() == 'view.show.after' && $publicExportButtonPosition == 'after'

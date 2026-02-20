@@ -141,16 +141,16 @@ return [
             ],
         ],
     ],
-    'translator' => [
-        'translation_file_patterns' => [
-            [
-                'type' => 'gettext',
-                'base_dir' => dirname(__DIR__) . '/language',
-                'pattern' => '%s.mo',
-                'text_domain' => null,
-            ],
-        ],
-    ],
+//    'translator' => [
+//        'translation_file_patterns' => [
+//            [
+//                'type' => 'gettext',
+//                'base_dir' => dirname(__DIR__) . '/language',
+//                'pattern' => '%s.mo',
+//                'text_domain' => null,
+//            ],
+//        ],
+//    ],
     'view_helpers' => [
         'factories' => [
             'exportButton' => Service\ViewHelper\ExportButtonFactory::class,

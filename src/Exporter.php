@@ -797,21 +797,25 @@ class Exporter
             return $id;
         }
 
-        $request = $api->read($targetRepresentation, $id);
-        if (!isset($request)) {
-            $logger->warn(sprintf('Request failed for %s (%d)', $targetRepresentation, $id));
-            return null;
-        }
-        $response = $request->getContent();
+        try {
+            $request = $api->read($targetRepresentation, $id);
+            if (!isset($request)) {
+                $logger->warn(sprintf('Request failed for %s (%d)', $targetRepresentation, $id));
+                return null;
+            }
+            $response = $request->getContent();
 
-        $methods = ['title', 'label'];
-        foreach ($methods as $method) {
-            if (method_exists($response, $method)) {
-                $value = $response->$method();
-                if ($value !== null) {
-                    return $value;
+            $methods = ['title', 'label'];
+            foreach ($methods as $method) {
+                if (method_exists($response, $method)) {
+                    $value = $response->$method();
+                    if ($value !== null) {
+                        return $value;
+                    }
                 }
             }
+        } catch (\Throwable $e) {
+            $logger->warn(sprintf('Request failed for %s (%d)', $targetRepresentation, $id));
         }
 
         return null;
