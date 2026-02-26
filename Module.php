@@ -220,7 +220,6 @@ class Module extends AbstractModule
 
         $currentSettings = [];
         foreach ($elements as $name => $element) {
-            $services->get('Omeka\Logger')->debug(var_export($siteSettings->get($name, $element->getValue()), true));
             $currentSettings[$name] = $siteSettings->get($name, $element->getValue());
         }
 
