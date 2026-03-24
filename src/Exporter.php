@@ -668,7 +668,7 @@ class Exporter
                             $multiRow = "";
                             foreach ($row as $single) {
                                 if (is_array($single)) {
-                                    if ($single['@id']) {
+                                    if (isset($single['@id'])) {
                                         $labelEntity = $this->getLabelFromRepresentation($single['@id']);
                                         if ($labelEntity) {
                                             $multiRow .= ";" . $labelEntity;
