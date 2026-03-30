@@ -657,31 +657,49 @@ class Exporter
                 if (array_key_exists($column, $item)) {
                     $row = $item[$column];
                     if (is_array($row)) {
-                        if (isset($row['@id'])) {
-                            $labelEntity = $this->getLabelFromRepresentation($row['@id']);
-                            if (isset($labelEntity)) {
-                                $valueToPush = $labelEntity;
+                       $valueEntries = (isset($row['@value']) || isset($row['@id']) || isset($row['type'])) ? [$row] : $row;
+    
+                        $cellValues = [];
+
+                        foreach ($valueEntries as $single) {
+                            if (!is_array($single)) {
+                                $cellValues[] = $single;
+                                continue;
                             }
-                        } elseif (array_key_exists('@value', $row)) {
-                            $valueToPush = $row['@value'];
-                        } else {
-                            $multiRow = "";
-                            foreach ($row as $single) {
-                                if (is_array($single)) {
-                                    if ($single['@id']) {
-                                        $labelEntity = $this->getLabelFromRepresentation($single['@id']);
-                                        if ($labelEntity) {
-                                            $multiRow .= ";" . $labelEntity;
-                                        }
-                                    } elseif (array_key_exists('@value', $single)) {
-                                        $multiRow .= ";" . $single['@value'];
-                                    }
-                                } else {
-                                    $multiRow .= ";" . $single;
-                                }
+
+                            $formattedValue = "";
+
+                            if (isset($single['type']) && $single['type'] === 'uri') {
+                                $label = !empty($single['o:label']) ? $single['o:label'] : $single['@id'];
+                                $url = $single['@id'];
+                                $formattedValue = (empty($label)) ? $url : $label . ":" . $url;
+                            } 
+                            
+                            elseif (isset($single['type']) && $single['type'] === 'resource') {
+                                $label = $this->getLabelFromRepresentation($single['@id']) ?? "Resource " . ($single['value_resource_id'] ?? '');  
+                                $url = $single['@id'];
+                                $formattedValue = $label . ":" . $url;
                             }
-                            $valueToPush = ltrim($multiRow, ";");
+
+                            elseif (isset($single['@value'])) {
+                                $formattedValue = $single['@value'];
+                            }
+
+                            elseif (isset($single['@id'])) {
+                                $formattedValue = $this->getLabelFromRepresentation($single['@id']) ?? $single['@id'];
+                            }
+                            
+                            elseif (isset($single['o:id'])) {
+                                $formattedValue = $single['o:id'];
+                            }
+
+                            if ($formattedValue !== "") {
+                                $cellValues[] = $formattedValue;
+                            }
                         }
+
+                        $valueToPush = implode("; ", $cellValues);
+                                            
                     } else {
                         $valueToPush = $row;
                     }
