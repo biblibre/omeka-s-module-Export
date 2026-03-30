@@ -663,58 +663,51 @@ class Exporter
 
                         foreach ($valueEntries as $single) {
                             if (!is_array($single)) {
-        $val = trim((string) $single);
-        if ($val !== "") {
-            $cellValues[] = $val;
-        }
-        continue;
-    }
+                                $val = trim((string) $single);
+                                 if ($val !== "") {
+                                    $cellValues[] = $val;
+                                 }
+                                continue;
+                            }
 
-    $formattedValue = "";
+                            $formattedValue = "";
 
-    // PRIORITÉ 1 : Le texte pur (@value) - On le traite en premier comme suggéré
-    if (isset($single['@value'])) {
-        $formattedValue = trim($single['@value']);
-    } 
-    
-    // PRIORITÉ 2 : Les URI (Liens externes)
-    elseif (isset($single['type']) && $single['type'] === 'uri') {
-        $url = $single['@id'] ?? '';
-        $label = !empty($single['o:label']) ? $single['o:label'] : $url;
-        $formattedValue = ($label === $url) ? $url : trim($label) . ":" . $url;
-    } 
-    
-    // PRIORITÉ 3 : Les Ressources Omeka (Liens internes)
-    elseif (isset($single['type']) && $single['type'] === 'resource') {
-        // On cherche le titre. Si getLabel échoue, on tente un fallback sur le display_title
-        $label = $this->getLabelFromRepresentation($single['@id']);
+                            if (isset($single['@value'])) {
+                                $formattedValue = trim($single['@value']);
+                            } 
+
+                            elseif (isset($single['type']) && $single['type'] === 'uri') {
+                                        $url = $single['@id'] ?? '';
+                                        $label = !empty($single['o:label']) ? $single['o:label'] : $url;
+                                $formattedValue = (empty($label)) ? $url : $label . ":" . $url;
+                            }
+                            
+                            elseif (isset($single['type']) && $single['type'] === 'resource') {
+                                $label = $this->getLabelFromRepresentation($single['@id']);
         
-        if (!$label) {
-            $label = $single['display_title'] ?? "Resource " . ($single['value_resource_id'] ?? $single['o:id'] ?? 'unknown');
-        }
+                                if (!$label) {
+                                    $label = $single['display_title'] ?? "Resource " . ($single['value_resource_id'] ?? $single['o:id'] ?? 'unknown');
+                                }
         
-        $url = $single['@id'];
-        $formattedValue = trim($label) . ":" . $url;
-    }
-
-    // PRIORITÉ 4 : Les objets techniques (@id sans type particulier)
-    // On vérifie le format pour éviter l'erreur de la ligne 815
-    elseif (isset($single['@id'])) {
-        $idUrl = $single['@id'];
-        $parts = explode("api/", $idUrl);
+                                $url = $single['@id'];
+                                $formattedValue = trim($label) . ":" . $url;
+                            }
+                            
+                            elseif (isset($single['@id'])) {
+                                $idUrl = $single['@id'];
+                                $parts = explode("api/", $idUrl);
         
-        if (isset($parts[1]) && strpos($parts[1], '/') !== false) {
-            $label = $this->getLabelFromRepresentation($idUrl);
-            $formattedValue = $label ? trim($label) : $idUrl;
-        } else {
-            $formattedValue = $idUrl;
-        }
-    }
+                                if (isset($parts[1]) && strpos($parts[1], '/') !== false) {
+                                    $label = $this->getLabelFromRepresentation($idUrl);
+                                     $formattedValue = $label ? trim($label) : $idUrl;
+                                } else {
+                                    $formattedValue = $idUrl;
+                                }
+                            }
 
-    // Ajout final au tableau de la cellule
-    if ($formattedValue !== "") {
-        $cellValues[] = $formattedValue;
-    }
+                            if ($formattedValue !== "") {
+                                $cellValues[] = $formattedValue;
+                            }
                         }
 
                         $valueToPush = implode("; ", $cellValues);
