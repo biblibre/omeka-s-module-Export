@@ -683,11 +683,7 @@ class Exporter
 
                             elseif (isset($single['@value'])) {
                                 $formattedValue = $single['@value'];
-                            }
-
-                            elseif (isset($single['@id'])) {
-                                $formattedValue = $this->getLabelFromRepresentation($single['@id']) ?? $single['@id'];
-                            }
+                            } 
                             
                             elseif (isset($single['o:id'])) {
                                 $formattedValue = $single['o:id'];
