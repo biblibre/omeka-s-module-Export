@@ -671,16 +671,16 @@ class Exporter
                                     if (isset($single['@id'])) {
                                         $labelEntity = $this->getLabelFromRepresentation($single['@id']);
                                         if ($labelEntity) {
-                                            $multiRow .= ";" . $labelEntity;
+                                            $multiRow .= "; " . $labelEntity;
                                         }
                                     } elseif (array_key_exists('@value', $single)) {
-                                        $multiRow .= ";" . $single['@value'];
+                                        $multiRow .= "; " . $single['@value'];
                                     }
                                 } else {
-                                    $multiRow .= ";" . $single;
+                                    $multiRow .= "; " . $single;
                                 }
                             }
-                            $valueToPush = ltrim($multiRow, ";");
+                            $valueToPush = ltrim($multiRow, "; ");
                         }
                     } else {
                         $valueToPush = $row;
