@@ -657,49 +657,43 @@ class Exporter
                 if (array_key_exists($column, $item)) {
                     $row = $item[$column];
                     if (is_array($row)) {
-                       $valueEntries = (isset($row['@value']) || isset($row['@id']) || isset($row['type'])) ? [$row] : $row;
-    
+                        $valueEntries = (isset($row['@value']) || isset($row['@id']) || isset($row['type'])) ? [$row] : $row;
+
                         $cellValues = [];
 
                         foreach ($valueEntries as $single) {
                             if (!is_array($single)) {
-                                $val = trim((string) $single);
-                                 if ($val !== "") {
+                                $val = $single;
+                                if ($val !== "") {
                                     $cellValues[] = $val;
-                                 }
+                                }
                                 continue;
                             }
 
                             $formattedValue = "";
 
                             if (isset($single['@value'])) {
-                                $formattedValue = trim($single['@value']);
-                            } 
-
-                            elseif (isset($single['type']) && $single['type'] === 'uri') {
-                                        $url = $single['@id'] ?? '';
-                                        $label = !empty($single['o:label']) ? $single['o:label'] : $url;
+                                $formattedValue = $single['@value'];
+                            } elseif (isset($single['type']) && $single['type'] === 'uri') {
+                                $url = $single['@id'] ?? '';
+                                $label = !empty($single['o:label']) ? $single['o:label'] : $url;
                                 $formattedValue = (empty($label)) ? $url : $label . ":" . $url;
-                            }
-                            
-                            elseif (isset($single['type']) && $single['type'] === 'resource') {
+                            } elseif (isset($single['type']) && $single['type'] === 'resource') {
                                 $label = $this->getLabelFromRepresentation($single['@id']);
-        
+
                                 if (!$label) {
-                                    $label = $single['display_title'] ?? "Resource " . ($single['value_resource_id'] ?? $single['o:id'] ?? 'unknown');
+                                    $label = 'Titlllleeeeee';
                                 }
-        
+
                                 $url = $single['@id'];
-                                $formattedValue = trim($label) . ":" . $url;
-                            }
-                            
-                            elseif (isset($single['@id'])) {
+                                $formattedValue = $label . ":" . $url;
+                            } elseif (isset($single['@id'])) {
                                 $idUrl = $single['@id'];
                                 $parts = explode("api/", $idUrl);
-        
+
                                 if (isset($parts[1]) && strpos($parts[1], '/') !== false) {
                                     $label = $this->getLabelFromRepresentation($idUrl);
-                                     $formattedValue = $label ? trim($label) : $idUrl;
+                                    $formattedValue = $label ? $label : $idUrl;
                                 } else {
                                     $formattedValue = $idUrl;
                                 }
@@ -711,7 +705,7 @@ class Exporter
                         }
 
                         $valueToPush = implode("; ", $cellValues);
-                                            
+                        $valueToPush = $valueToPush;
                     } else {
                         $valueToPush = $row;
                     }
@@ -720,10 +714,9 @@ class Exporter
                 }
 
                 if (is_string($valueToPush)) {
-                    if (trim($valueToPush) !== "") {
-                        $usedColumns[$column] = true;
-                    }
-                } elseif ($valueToPush !== null && $valueToPush !== "") {
+                    $valueToPush = trim($valueToPush);
+                }
+                if ($valueToPush !== null && $valueToPush !== "") {
                     $usedColumns[$column] = true;
                 }
 
