@@ -683,7 +683,7 @@ class Exporter
                                     if (isset($single['@id'])) {
 
                                         if (isset($single['type']) && $single['type'] === 'uri') {
-                                            if (!empty($single['o:label'])) {
+                                            if (isset($single['o:label']) && trim($single['o:label']) !== "") {
                                                 $multiRow .= "; " . $single['o:label'] . ":" . $single['@id'];
                                             } else {
                                                 $multiRow .= "; " . $single['@id'];
