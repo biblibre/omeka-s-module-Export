@@ -664,14 +664,14 @@ class Exporter
                             }
 
                             if (isset($row['type']) && $row['type'] === 'resource') {
-                                $labelEntity = $this->getLabelFromRepresentation($row['@id']);
+                                $labelEntity = $row['display_title'];
                                 if (isset($labelEntity)) {
                                     $valueToPush = $labelEntity . ":" . $row['@id'];
                                 }
                             } else {
                                 $labelEntity = $this->getLabelFromRepresentation($row['@id']);
                                 if (isset($labelEntity)) {
-                                    $valueToPush = $labelEntity; // lien ? 
+                                    $valueToPush = $labelEntity;
                                 }
                             }
                         } elseif (array_key_exists('@value', $row)) {
@@ -683,18 +683,22 @@ class Exporter
                                     if (isset($single['@id'])) {
 
                                         if (isset($single['type']) && $single['type'] === 'uri') {
-                                            $multiRow .= "; " . $single['o:label'] . ":" . $single['@id'];
+                                            if (!empty($single['o:label'])) {
+                                                $multiRow .= "; " . $single['o:label'] . ":" . $single['@id'];
+                                            } else {
+                                                $multiRow .= "; " . $single['@id'];
+                                            }
                                         }
 
                                         if (isset($single['type']) && $single['type'] === 'resource') {
-                                            $labelEntity = $this->getLabelFromRepresentation($single['@id']);
+                                            $labelEntity = $single['display_title'];
                                             if (isset($labelEntity)) {
                                                 $multiRow .= "; " . $labelEntity . ":" . $single['@id'];
                                             }
                                         } else {
                                             $labelEntity = $this->getLabelFromRepresentation($single['@id']);
                                             if (isset($labelEntity)) {
-                                                $multiRow .= "; " . $labelEntity; // lien ?  . ":" . $single['@id'] 
+                                                $multiRow .= "; " . $labelEntity;
                                             }
                                         }
                                     } elseif (array_key_exists('@value', $single)) {
