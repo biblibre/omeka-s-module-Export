@@ -660,7 +660,11 @@ class Exporter
                         if (isset($row['@id'])) {
 
                             if (isset($row['type']) && $row['type'] === 'uri') {
-                                $valueToPush = $row['o:label'] . ":" . $row['@id'];
+                                if (isset($single['o:label'])) {
+                                    $valueToPush = $row['o:label'] . ":" . $row['@id'];
+                                } else {
+                                    $valueToPush = $row['@id'];
+                                }
                             }
 
                             if (isset($row['type']) && $row['type'] === 'resource') {
@@ -683,7 +687,7 @@ class Exporter
                                     if (isset($single['@id'])) {
 
                                         if (isset($single['type']) && $single['type'] === 'uri') {
-                                            if (isset($single['o:label']) && trim($single['o:label']) !== "") {
+                                            if (isset($single['o:label'])) {
                                                 $multiRow .= "; " . $single['o:label'] . ":" . $single['@id'];
                                             } else {
                                                 $multiRow .= "; " . $single['@id'];
