@@ -658,9 +658,17 @@ class Exporter
                     $row = $item[$column];
                     if (is_array($row)) {
                         if (isset($row['@id'])) {
-                            $labelEntity = $this->getLabelFromRepresentation($row['@id']);
-                            if (isset($labelEntity)) {
-                                $valueToPush = $labelEntity;
+                            $idUrl = $row['@id'];
+                            $parts = explode("api/", $idUrl);
+                            if (isset($parts[1]) && strpos($parts[1], 'media/') === 0) {
+                                $labelEntity = $this->getLabelFromRepresentation($row['@id']);
+                                if ($labelEntity) {
+                                    $valueToPush = $labelEntity;
+                                } else {
+                                    $valueToPush = $row['@id']; //idUrl
+                                }
+                            } else {
+                                $valueToPush = $row['@id']; //idUrl
                             }
                         } elseif (array_key_exists('@value', $row)) {
                             $valueToPush = $row['@value'];
@@ -668,10 +676,18 @@ class Exporter
                             $multiRow = "";
                             foreach ($row as $single) {
                                 if (is_array($single)) {
-                                    if ($single['@id']) {
-                                        $labelEntity = $this->getLabelFromRepresentation($single['@id']);
-                                        if ($labelEntity) {
-                                            $multiRow .= ";" . $labelEntity;
+                                    if (isset($single['@id'])) {
+                                        $idUrl = $single['@id'];
+                                        $parts = explode("api/", $idUrl);
+                                        if (isset($parts[1]) && strpos($parts[1], 'media/') === 0) {
+                                            $labelEntity = $this->getLabelFromRepresentation($single['@id']);
+                                            if ($labelEntity) {
+                                                $multiRow .= ";" . $labelEntity;
+                                            } else {
+                                                $multiRow .= ";" . $single['@id'];
+                                            }
+                                        } else {
+                                            $multiRow .= ";" . $single['@id']; //idUrl
                                         }
                                     } elseif (array_key_exists('@value', $single)) {
                                         $multiRow .= ";" . $single['@value'];
