@@ -647,6 +647,9 @@ class Exporter
 
         $temp = tmpfile();
         $usedColumns = array_fill_keys($header, false);
+        $separator = ',';
+        $enclosure = '"';
+        $escape = '';
 
         foreach ($collection as $item) {
             if (!is_array($item)) {
@@ -699,7 +702,7 @@ class Exporter
 
                 $outputItem[] = $valueToPush;
             }
-            fputcsv($temp, $outputItem);
+            fputcsv($temp, $outputItem, $separator, $enclosure, $escape);
         }
 
         rewind($temp);
@@ -714,14 +717,14 @@ class Exporter
         }
 
         $finalOutput = $this->getFileHandle();
-        fputcsv($finalOutput, $finalHeader);
+        fputcsv($finalOutput, $finalHeader, $separator, $enclosure, $escape);
 
-        while (($row = fgetcsv($temp)) !== false) {
+        while (($row = fgetcsv($temp, null, $separator, $enclosure, $escape)) !== false) {
             $filteredRow = [];
             foreach ($keepIndexes as $idx) {
                 $filteredRow[] = array_key_exists($idx, $row) ? $row[$idx] : "";
             }
-            fputcsv($finalOutput, $filteredRow);
+            fputcsv($finalOutput, $filteredRow, $separator, $enclosure, $escape);
         }
 
         fclose($temp);
