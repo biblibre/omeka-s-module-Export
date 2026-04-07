@@ -792,11 +792,32 @@ class Exporter
         }
         $representationInfo = explode('/', $target[1]);
         $targetRepresentation = $representationInfo[0];
+
+        if (!isset($representationInfo[1])) {
+
+            $field_right = explode('=',  $representationInfo[0]);
+            if ($field_right[0] == 'items?item_set_id') {
+                $id = $field_right[1];
+                $targetRepresentation = 'item_sets';
+
+                $response = $api->search('items', ['item_set_id' => $id]);
+                if (!isset($response)) {
+                    $logger->warn(sprintf('Request failed for items with item_set_id (%d)', $id));
+                    return null;
+                }
+                $items = $response->getContent();
+                $itemIds = [];
+                foreach ($items as $item) {
+                    $itemIds[] = $item->id();
+                }
+                return implode(';', $itemIds);
+            }
+        }
+
         $id = $representationInfo[1];
         if ($targetRepresentation == 'media') {
             return $id;
         }
-
         $request = $api->read($targetRepresentation, $id);
         if (!isset($request)) {
             $logger->warn(sprintf('Request failed for %s (%d)', $targetRepresentation, $id));
