@@ -661,9 +661,23 @@ class Exporter
                     $row = $item[$column];
                     if (is_array($row)) {
                         if (isset($row['@id'])) {
-                            $labelEntity = $this->getLabelFromRepresentation($row['@id']);
-                            if (isset($labelEntity)) {
-                                $valueToPush = $labelEntity;
+
+                            if (isset($row['type']) && $row['type'] === 'uri') {
+                                if (isset($row['o:label'])) {
+                                    $valueToPush = $row['o:label'] . ":" . $row['@id'];
+                                } else {
+                                    $valueToPush = $row['@id'];
+                                }
+                            } elseif (isset($row['type']) && $row['type'] === 'resource') {
+                                $resourceTitle = $row['display_title'];
+                                if (isset($resourceTitle)) {
+                                    $valueToPush = $resourceTitle . ":" . $row['@id'];
+                                }
+                            } else {
+                                $labelEntity = $this->getLabelFromRepresentation($row['@id']);
+                                if (isset($labelEntity)) {
+                                    $valueToPush = $labelEntity;
+                                }
                             }
                         } elseif (array_key_exists('@value', $row)) {
                             $valueToPush = $row['@value'];
@@ -672,9 +686,23 @@ class Exporter
                             foreach ($row as $single) {
                                 if (is_array($single)) {
                                     if (isset($single['@id'])) {
-                                        $labelEntity = $this->getLabelFromRepresentation($single['@id']);
-                                        if ($labelEntity) {
-                                            $multiRow .= ";" . $labelEntity;
+
+                                        if (isset($single['type']) && $single['type'] === 'uri') {
+                                            if (isset($single['o:label'])) {
+                                                $multiRow .= ";" . $single['o:label'] . ":" . $single['@id'];
+                                            } else {
+                                                $multiRow .= ";" . $single['@id'];
+                                            }
+                                        } elseif (isset($single['type']) && $single['type'] === 'resource') {
+                                            $resourceTitle = $single['display_title'];
+                                            if (isset($resourceTitle)) {
+                                                $multiRow .= ";" . $resourceTitle . ":" . $single['@id'];
+                                            }
+                                        } else {
+                                            $labelEntity = $this->getLabelFromRepresentation($single['@id']);
+                                            if (isset($labelEntity)) {
+                                                $multiRow .= ";" . $labelEntity;
+                                            }
                                         }
                                     } elseif (array_key_exists('@value', $single)) {
                                         $multiRow .= ";" . $single['@value'];
