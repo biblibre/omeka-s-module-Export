@@ -663,14 +663,12 @@ class Exporter
                         if (isset($row['@id'])) {
 
                             if (isset($row['type']) && $row['type'] === 'uri') {
-                                if (isset($single['o:label'])) {
+                                if (isset($row['o:label'])) {
                                     $valueToPush = $row['o:label'] . ":" . $row['@id'];
                                 } else {
                                     $valueToPush = $row['@id'];
                                 }
-                            }
-
-                            if (isset($row['type']) && $row['type'] === 'resource') {
+                            } elseif (isset($row['type']) && $row['type'] === 'resource') {
                                 $resourceTitle = $row['display_title'];
                                 if (isset($resourceTitle)) {
                                     $valueToPush = $resourceTitle . ":" . $row['@id'];
@@ -695,9 +693,7 @@ class Exporter
                                             } else {
                                                 $multiRow .= ";" . $single['@id'];
                                             }
-                                        }
-
-                                        if (isset($single['type']) && $single['type'] === 'resource') {
+                                        } elseif (isset($single['type']) && $single['type'] === 'resource') {
                                             $resourceTitle = $single['display_title'];
                                             if (isset($resourceTitle)) {
                                                 $multiRow .= ";" . $resourceTitle . ":" . $single['@id'];
